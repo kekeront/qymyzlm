@@ -1,0 +1,9 @@
+defaults:
+  - kaz1b
+
+from_pretrained: "meta-llama/Llama-3.2-1B"
+vocab_expansion:
+  target_vocab_size: 50000
+  new_token_count: 15000          # add ~15K Kazakh tokens to existing 32K
+  init_method: "similarity"       # OFA-style weighted average init
+  similarity_model: "openai/text-embedding-3-small"

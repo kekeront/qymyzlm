@@ -1,0 +1,19 @@
+benchmarks:
+  - name: kazmmlu
+    num_fewshot: 5
+    batch_size: 16
+  - name: tumlu_mini
+    num_fewshot: 5
+    batch_size: 16
+  - name: kazqad
+    num_fewshot: 0
+    batch_size: 8
+  - name: flores200_kaz_eng
+    metric: chrf
+    batch_size: 16
+  - name: flores200_kaz_rus
+    metric: chrf
+    batch_size: 16
+
+model_dtype: bfloat16
+results_dir: evals

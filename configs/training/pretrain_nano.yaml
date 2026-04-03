@@ -1,0 +1,32 @@
+defaults:
+  - pretrain
+
+# KazLLM-Nano training on RTX 2070 (8GB VRAM)
+#
+# Budget: ~500M tokens over cleaned Kazakh Wikipedia (~51M tokens, ~10 epochs).
+# This gives ~12x Chinchilla ratio for a 43M model — moderate overtraining
+# following the SmolLM2 insight that small models benefit from overtraining.
+#
+# Usage:
+#   PYTHONPATH=src python scripts/train.py model=kaz_nano training=pretrain_nano \
+#       data=local_validate
+
+total_tokens: 500_000_000
+per_device_batch_size: 4
+gradient_accumulation_steps: 4    # effective batch = 4*4*1024 = 16,384 tokens
+context_length: 1024
+learning_rate: 6.0e-4             # higher LR for small model (SmolLM2 uses 3e-3 for 135M)
+min_lr_ratio: 0.1
+weight_decay: 0.1
+max_grad_norm: 1.0
+warmup_steps: 200
+max_steps: 3000                   # ~3K steps * 16K tokens/step ≈ 49M tokens (1 epoch)
+fp16: true                        # RTX 2070 Turing has good fp16 Tensor Core support
+bf16: false                       # RTX 2070 — no native bf16
+gradient_checkpointing: true      # required for 8GB VRAM
+fsdp: ""                          # single GPU
+save_steps: 500
+logging_steps: 5
+eval_steps: 250
+seed: 42
+checkpoint_dir: checkpoints/kaz_nano

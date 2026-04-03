@@ -1,0 +1,21 @@
+base_model: checkpoints/kaz1b_pretrain/hf_export
+lora_rank: 16
+lora_alpha: 32
+lora_dropout: 0.05
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+per_device_batch_size: 4
+gradient_accumulation_steps: 4
+learning_rate: 2.0e-4
+num_epochs: 3
+max_seq_length: 2048
+bf16: true
+save_steps: 500
+data_path: data/sft/instructions_kaz.jsonl
+output_dir: checkpoints/kaz1b_sft_lora

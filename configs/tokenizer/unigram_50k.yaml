@@ -1,0 +1,9 @@
+model_type: unigram
+vocab_size: 50000
+character_coverage: 0.9999
+byte_fallback: true
+add_dummy_prefix: false
+max_sentence_length: 8192
+num_threads: 16
+sampling_sentences: 10000000   # 10M sentences for tokenizer training
+output_dir: data/tokenizer/kaz_sp_unigram_50k

@@ -1,0 +1,14 @@
+line-length = 100
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "I", "N", "UP"]
+ignore = [
+    "ANN",
+    "N806",   # uppercase vars (B, T, C, etc.) — standard ML/PyTorch convention
+    "N812",   # `import torch.nn.functional as F` — universal PyTorch convention
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"

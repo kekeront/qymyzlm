@@ -1,0 +1,10 @@
+defaults:
+  - data: default
+  - tokenizer: unigram_50k
+  - model: kaz1b
+  - training: pretrain
+  - eval: default
+  - _self_
+
+output_dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+seed: 42

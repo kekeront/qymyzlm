@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+
+# Data (large files, never commit)
+data/
+outputs/
+checkpoints/
+evals/
+wandb/
+*.bin
+*.npy
+*.model
+*.vocab
+
+# Hydra outputs
+outputs/
+multirun/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# uv
+.uv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Papers (reference PDFs, too large for git)
+papers/
+
+# Session files
+session.txt
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+
+# Claude Code memory (private)
+.claude/

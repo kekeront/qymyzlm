@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KazLLM Chat</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1b26;
+            --surface2: #24253a;
+            --border: #2f3146;
+            --text: #c0caf5;
+            --text-dim: #565f89;
+            --accent: #7aa2f7;
+            --accent-dim: #3d59a1;
+            --user-bg: #1e2030;
+            --bot-bg: #16161e;
+            --green: #9ece6a;
+            --red: #f7768e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo h1 {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .logo span {
+            font-size: 12px;
+            color: var(--text-dim);
+            background: var(--surface2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--red);
+        }
+
+        .status-dot.connected { background: var(--green); }
+
+        #model-info {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .messages {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: var(--accent-dim);
+        }
+
+        .message.assistant .message-avatar {
+            background: var(--surface2);
+        }
+
+        .message-content {
+            flex: 1;
+            line-height: 1.6;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .message.user .message-content {
+            color: var(--text);
+        }
+
+        .message.assistant .message-content {
+            color: #a9b1d6;
+        }
+
+        .message-meta {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px 0;
+        }
+
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-dim);
+            animation: blink 1.4s infinite both;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0.3; }
+            40% { opacity: 1; }
+        }
+
+        .input-area {
+            border-top: 1px solid var(--border);
+            padding: 16px 20px;
+            background: var(--surface);
+        }
+
+        .input-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        textarea {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 10px 14px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            min-height: 44px;
+            max-height: 120px;
+            line-height: 1.5;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        textarea:focus { border-color: var(--accent); }
+        textarea::placeholder { color: var(--text-dim); }
+
+        button.send {
+            background: var(--accent);
+            color: #1a1b26;
+            border: none;
+            border-radius: 8px;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.15s;
+        }
+
+        button.send:hover { opacity: 0.85; }
+        button.send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .settings-bar {
+            display: flex;
+            gap: 16px;
+            max-width: 800px;
+            margin: 8px auto 0;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .settings-bar label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .settings-bar input[type="range"] {
+            width: 80px;
+            accent-color: var(--accent);
+        }
+
+        .settings-bar input[type="number"] {
+            width: 50px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text);
+            padding: 2px 4px;
+            font-size: 11px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-dim);
+        }
+
+        .empty-state h2 {
+            font-size: 24px;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p { font-size: 14px; line-height: 1.6; }
+
+        .examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .example-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+
+        .example-btn:hover { border-color: var(--accent); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>KazLLM</h1>
+            <span>v3 Nano</span>
+        </div>
+        <div class="status">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-text">Connecting...</span>
+            <span id="model-info"></span>
+        </div>
+    </header>
+
+    <div class="chat-container" id="chat-container">
+        <div class="messages" id="messages">
+            <div class="empty-state" id="empty-state">
+                <h2>KazLLM Chat</h2>
+                <p>Kazakh language model with mHC + Engram + Multi-Token Prediction</p>
+                <div class="examples">
+                    <button class="example-btn" onclick="sendExample(this)">Қазақстан туралы айтып бер</button>
+                    <button class="example-btn" onclick="sendExample(this)">Менің атым Алтаир</button>
+                    <button class="example-btn" onclick="sendExample(this)">Жасанды интеллект деген не?</button>
+                    <button class="example-btn" onclick="sendExample(this)">Бір әңгіме жаз</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-area">
+        <div class="input-wrapper">
+            <textarea
+                id="input"
+                placeholder="Хабарлама жазыңыз... (Enter to send, Shift+Enter for newline)"
+                rows="1"
+                autofocus
+            ></textarea>
+            <button class="send" id="send-btn" onclick="sendMessage()">&#9654;</button>
+        </div>
+        <div class="settings-bar">
+            <label>
+                Temp:
+                <input type="range" id="temperature" min="0" max="1.5" step="0.1" value="0.7">
+                <span id="temp-val">0.7</span>
+            </label>
+            <label>
+                Max tokens:
+                <input type="number" id="max-tokens" min="16" max="1024" value="256">
+            </label>
+            <label>
+                Top-k:
+                <input type="number" id="top-k" min="0" max="200" value="50">
+            </label>
+            <label>
+                Top-p:
+                <input type="range" id="top-p" min="0" max="1" step="0.05" value="0.9">
+                <span id="topp-val">0.9</span>
+            </label>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        const messagesEl = document.getElementById('messages');
+        const inputEl = document.getElementById('input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatContainer = document.getElementById('chat-container');
+        const emptyState = document.getElementById('empty-state');
+        const tempSlider = document.getElementById('temperature');
+        const tempVal = document.getElementById('temp-val');
+        const toppSlider = document.getElementById('top-p');
+        const toppVal = document.getElementById('topp-val');
+
+        let isGenerating = false;
+
+        tempSlider.oninput = () => tempVal.textContent = tempSlider.value;
+        toppSlider.oninput = () => toppVal.textContent = toppSlider.value;
+
+        // Auto-resize textarea
+        inputEl.addEventListener('input', () => {
+            inputEl.style.height = 'auto';
+            inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+        });
+
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        async function checkHealth() {
+            try {
+                const res = await fetch(`${API_URL}/health`);
+                const data = await res.json();
+                const dot = document.getElementById('status-dot');
+                const text = document.getElementById('status-text');
+                if (data.model_loaded) {
+                    dot.classList.add('connected');
+                    text.textContent = 'Connected';
+                    loadModelInfo();
+                } else {
+                    dot.classList.remove('connected');
+                    text.textContent = 'Model not loaded';
+                }
+            } catch {
+                document.getElementById('status-dot').classList.remove('connected');
+                document.getElementById('status-text').textContent = 'Disconnected';
+            }
+        }
+
+        async function loadModelInfo() {
+            try {
+                const res = await fetch(`${API_URL}/model/info`);
+                const info = await res.json();
+                const infoEl = document.getElementById('model-info');
+                const paramStr = info.parameters > 1e9
+                    ? `${(info.parameters / 1e9).toFixed(2)}B`
+                    : `${(info.parameters / 1e6).toFixed(1)}M`;
+                infoEl.textContent = `${info.model_name} (${paramStr}) on ${info.device}`;
+            } catch {}
+        }
+
+        function addMessage(role, content, meta = '') {
+            if (emptyState) emptyState.remove();
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            const avatar = role === 'user' ? '&#128100;' : '&#129302;';
+            div.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div>
+                    <div class="message-content">${escapeHtml(content)}</div>
+                    ${meta ? `<div class="message-meta">${meta}</div>` : ''}
+                </div>
+            `;
+            messagesEl.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return div;
+        }
+
+        function addTypingIndicator() {
+            if (emptyState) emptyState.remove();
+            const div = document.createElement('div');
+            div.className = 'message assistant';
+            div.id = 'typing';
+            div.innerHTML = `
+                <div class="message-avatar">&#129302;</div>
+                <div>
+                    <div class="message-content">
+                        <div class="typing-indicator"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+            `;
+            messagesEl.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return div;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function sendMessage() {
+            const text = inputEl.value.trim();
+            if (!text || isGenerating) return;
+
+            isGenerating = true;
+            sendBtn.disabled = true;
+            inputEl.value = '';
+            inputEl.style.height = 'auto';
+
+            addMessage('user', text);
+            const typingEl = addTypingIndicator();
+
+            try {
+                const res = await fetch(`${API_URL}/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: text,
+                        max_new_tokens: parseInt(document.getElementById('max-tokens').value),
+                        temperature: parseFloat(tempSlider.value),
+                        top_k: parseInt(document.getElementById('top-k').value),
+                        top_p: parseFloat(toppSlider.value),
+                    }),
+                });
+
+                const data = await res.json();
+                typingEl.remove();
+                const meta = `${data.tokens_generated} tokens | ${data.tokens_per_second} tok/s`;
+                addMessage('assistant', data.text, meta);
+            } catch (err) {
+                typingEl.remove();
+                addMessage('assistant', `Error: ${err.message}. Is the API server running?`);
+            }
+
+            isGenerating = false;
+            sendBtn.disabled = false;
+            inputEl.focus();
+        }
+
+        function sendExample(btn) {
+            inputEl.value = btn.textContent;
+            sendMessage();
+        }
+
+        // Check health on load and periodically
+        checkHealth();
+        setInterval(checkHealth, 10000);
+    </script>
+</body>
+</html>
