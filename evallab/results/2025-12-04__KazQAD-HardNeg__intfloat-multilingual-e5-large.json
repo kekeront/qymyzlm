@@ -1,0 +1,15 @@
+{
+  "model": "intfloat/multilingual-e5-large",
+  "revision": null,
+  "task": "KazQAD-HardNeg",
+  "protocol": "Reported card protocol, verbatim: 'Evaluated on KazQAD test set with TF-IDF hard negatives (100 candidates per query)'. Candidate pools unpublished and protocol-sensitive (successor card gets mE5-large MRR 0.449 under a same-named setting) — pending re-measurement under kazqad-hardneg-bm25-v1 (kazeval.hardneg).",
+  "split": "test",
+  "metrics": {
+    "mrr": 0.909,
+    "hits_at_1": 0.85,
+    "hits_at_5": 0.99
+  },
+  "provenance": "reported",
+  "source": "https://huggingface.co/Nurlykhan/kazembed-v5",
+  "date": "2025-12-04"
+}

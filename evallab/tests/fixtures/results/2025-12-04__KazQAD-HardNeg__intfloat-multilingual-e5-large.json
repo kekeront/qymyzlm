@@ -1,0 +1,15 @@
+{
+  "model": "intfloat/multilingual-e5-large",
+  "revision": null,
+  "task": "KazQAD-HardNeg",
+  "protocol": "fixture: TF-IDF hard negatives, 100 candidates per query",
+  "split": "test",
+  "metrics": {
+    "mrr": 0.909,
+    "hits_at_1": 0.85,
+    "hits_at_5": 0.99
+  },
+  "provenance": "reported",
+  "source": "https://huggingface.co/Nurlykhan/kazembed-v5",
+  "date": "2025-12-04"
+}

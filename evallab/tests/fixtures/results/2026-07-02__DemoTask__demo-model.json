@@ -1,0 +1,13 @@
+{
+  "model": "demo/model",
+  "revision": null,
+  "task": "DemoTask",
+  "protocol": "fixture: unknown task lands in the Other section",
+  "split": "test",
+  "metrics": {
+    "score": 0.5
+  },
+  "provenance": "measured",
+  "source": "fixture",
+  "date": "2026-07-02"
+}

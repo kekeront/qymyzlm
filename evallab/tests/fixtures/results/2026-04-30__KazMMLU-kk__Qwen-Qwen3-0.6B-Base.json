@@ -1,0 +1,13 @@
+{
+  "model": "Qwen/Qwen3-0.6B-Base",
+  "revision": null,
+  "task": "KazMMLU-kk",
+  "protocol": "fixture: KazMMLU Kazakh subset, 3-shot",
+  "split": "test",
+  "metrics": {
+    "acc": 0.328
+  },
+  "provenance": "measured",
+  "source": "qymyzlm README baseline study",
+  "date": "2026-04-30"
+}

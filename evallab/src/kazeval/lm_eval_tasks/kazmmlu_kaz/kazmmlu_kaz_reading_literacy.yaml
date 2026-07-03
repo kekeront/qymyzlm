@@ -1,0 +1,4 @@
+"include": "_kazmmlu_kaz_template_yaml"
+"task": "kazmmlu_kaz_reading_literacy"
+"dataset_name": "Reading Literacy (High School in kaz)"
+"task_alias": "reading_literacy"

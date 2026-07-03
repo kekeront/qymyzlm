@@ -2,17 +2,19 @@
 """QLoRA continual pretraining for any HF model on Kazakh data.
 
 Streams Kazakh text from HuggingFace, trains with 4-bit QLoRA.
-Fits on RTX 2070 (8GB) for models up to ~3B.
+Fits on RTX 2070 (8GB) for models up to ~3B. Mixed precision is auto-detected:
+bf16 on Ampere+ (sm_80+), fp16 otherwise (RTX 2070 is Turing/sm_75 — no bf16).
+
+Wall-clock: [UNVERIFIED until measured]. Formula estimate for 100M tokens of a
+4-bit 0.6B with gradient checkpointing on RTX 2070 at ~2-5K tok/s throughput:
+100e6 / (2e3..5e3) tok/s ≈ 6-14 hours — NOT the "1-2 hours" previously claimed.
 
 Usage:
-    # Quick test (1M tokens, ~2 min)
+    # Quick test (1M tokens)
     python scripts/qlora_continual.py --tokens 1_000_000
 
-    # 100M tokens (~1-2 hours on RTX 2070)
+    # 100M tokens (est. 6-14 h on RTX 2070, unverified)
     python scripts/qlora_continual.py --tokens 100_000_000
-
-    # 400M tokens (~4-6 hours)
-    python scripts/qlora_continual.py --tokens 400_000_000
 
     # Custom model
     python scripts/qlora_continual.py --model Qwen/Qwen2.5-1.5B --tokens 100_000_000
@@ -31,7 +33,6 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     BitsAndBytesConfig,
-    DataCollatorForLanguageModeling,
     Trainer,
     TrainingArguments,
 )
@@ -43,7 +44,12 @@ log = logging.getLogger(__name__)
 
 SOURCES = [
     {"repo": "wikimedia/wikipedia", "name": "20231101.kk", "text_col": "text", "label": "wiki"},
-    {"repo": "kz-transformers/multidomain-kazakh-dataset", "name": None, "text_col": "text", "label": "multidomain"},
+    {
+        "repo": "kz-transformers/multidomain-kazakh-dataset",
+        "name": None,
+        "text_col": "text",
+        "label": "multidomain",
+    },
     {"repo": "HPLT/HPLT2.0_cleaned", "name": "kaz_Cyrl", "text_col": "text", "label": "hplt2"},
     {"repo": "allenai/c4", "name": "kk", "text_col": "text", "label": "c4"},
 ]
@@ -100,9 +106,13 @@ def stream_kazakh_texts(max_tokens: int, tokenizer, seq_length: int):
                 yield {"input_ids": chunk, "labels": chunk}
 
                 if total_tokens % 1_000_000 < seq_length:
-                    log.info(f"  {total_tokens / 1e6:.1f}M tokens ({docs_kept} docs from {src['label']})")
+                    log.info(
+                        f"  {total_tokens / 1e6:.1f}M tokens ({docs_kept} docs from {src['label']})"
+                    )
 
-        log.info(f"  {src['label']}: {docs_kept} docs, running total: {total_tokens / 1e6:.1f}M tokens")
+        log.info(
+            f"  {src['label']}: {docs_kept} docs, running total: {total_tokens / 1e6:.1f}M tokens"
+        )
 
     log.info(f"Total: {total_tokens / 1e6:.1f}M tokens streamed")
 
@@ -168,11 +178,18 @@ def main():
     dataset = StreamingPackedDataset(data)
 
     # ── Model (4-bit quantized) ───────────────────────────────────────────────
+    # bf16 needs Ampere+ (sm_80); RTX 2070 is Turing (sm_75) => fp16 there.
+    cuda = device == "cuda"
+    use_bf16 = cuda and torch.cuda.is_bf16_supported()
+    use_fp16 = cuda and not use_bf16
+    compute_dtype = torch.bfloat16 if use_bf16 else torch.float16
+    log.info(f"Mixed precision: {'bf16' if use_bf16 else 'fp16' if use_fp16 else 'fp32 (CPU)'}")
+
     log.info(f"Loading model: {args.model} (4-bit quantized)")
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_compute_dtype=compute_dtype,
         bnb_4bit_use_double_quant=True,
     )
 
@@ -190,7 +207,15 @@ def main():
         r=args.lora_rank,
         lora_alpha=args.lora_alpha,
         lora_dropout=0.05,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+        target_modules=[
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj",
+        ],
         bias="none",
     )
     model = get_peft_model(model, lora_config)
@@ -202,9 +227,11 @@ def main():
     total_steps = (len(data) * args.epochs) // effective_batch
     warmup_steps = min(100, total_steps // 10)
 
-    log.info(f"Training config:")
+    log.info("Training config:")
     log.info(f"  Sequences: {len(data)}")
-    log.info(f"  Effective batch: {effective_batch} seqs ({tokens_per_step / 1e3:.0f}K tokens/step)")
+    log.info(
+        f"  Effective batch: {effective_batch} seqs ({tokens_per_step / 1e3:.0f}K tokens/step)"
+    )
     log.info(f"  Total steps: {total_steps}")
     log.info(f"  Warmup: {warmup_steps} steps")
     log.info(f"  Output: {output_dir}")
@@ -218,7 +245,8 @@ def main():
         warmup_steps=warmup_steps,
         max_steps=total_steps,
         num_train_epochs=args.epochs,
-        bf16=True,
+        bf16=use_bf16,
+        fp16=use_fp16,
         gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False},
         optim="paged_adamw_8bit",

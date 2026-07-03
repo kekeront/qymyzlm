@@ -5,7 +5,9 @@ No model claim exists until a runner here reproduces it. Tracks:
 1. **Embedding/retrieval** — KazQAD (planka: mE5-large MRR 0.909 on hard negatives),
    kk-MTEB task classes (KazQADRetrieval, KazQADReranking) written here first, then PR'd
    upstream to embeddings-benchmark/mteb — the upstream merge is the deliverable.
-2. **Generative** — KazMMLU 5-shot (baseline Qwen3-0.6B 32.8%, ceiling Sherkala-8B 41.4%).
+2. **Generative** — KazMMLU 3-shot (dev split holds only 3 exemplars/subject; runs previously
+   labeled 5-shot were effectively 3-shot). Baseline Qwen3-0.6B 32.8% (measured), ceiling
+   Sherkala-8B 41.4% (reported, cross-protocol until re-run here).
 3. **Safety** — Qorgau kk-ru guardrails (arXiv 2502.13640; NO license — eval-only,
    never train on its annotations).
 

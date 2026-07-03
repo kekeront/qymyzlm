@@ -93,7 +93,7 @@ class EngramModule(nn.Module):
     def __init__(
         self,
         hidden_size: int,
-        ngram_orders: list[int] = None,
+        ngram_orders: list[int] | None = None,
         num_heads: int = 4,
         table_size: int = 500_003,  # prime near 500K
         slot_dim: int = 64,
@@ -215,7 +215,8 @@ class EngramModule(nn.Module):
         # Magnitude-sign decomposition (from Engram demo code): compress extreme
         # values via sqrt while preserving sign. Improves collision suppression —
         # negative similarity (context/n-gram mismatch) pushes gate below 0.5.
-        raw_gate = (self.gate_norm_h(q) * self.gate_norm_k(k)).sum(dim=-1, keepdim=True) / self.gate_scale
+        raw_gate = (self.gate_norm_h(q) * self.gate_norm_k(k)).sum(dim=-1, keepdim=True)
+        raw_gate = raw_gate / self.gate_scale
         raw_gate = raw_gate.abs().clamp_min(1e-6).sqrt() * raw_gate.sign()
         alpha = torch.sigmoid(raw_gate)  # (B, T, 1) scalar gate ∈ (0,1)
         v = self.v_proj(e)  # (B, T, hidden_size)

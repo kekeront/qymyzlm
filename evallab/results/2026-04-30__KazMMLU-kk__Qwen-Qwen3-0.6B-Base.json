@@ -1,0 +1,13 @@
+{
+  "model": "Qwen/Qwen3-0.6B-Base",
+  "revision": null,
+  "task": "KazMMLU-kk",
+  "protocol": "KazMMLU Kazakh-language subset (12 subjects, 9,870 test questions), 3-shot from dev (historically labeled 5-shot; dev has only 3 exemplars per subject), next-token letter-logit argmax, fp16, RTX 2070, April 2026.",
+  "split": "test",
+  "metrics": {
+    "acc": 0.328
+  },
+  "provenance": "measured",
+  "source": "qymyzlm README baseline study (scripts/benchmark_baselines.py)",
+  "date": "2026-04-30"
+}

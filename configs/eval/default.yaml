@@ -1,19 +1,13 @@
+# Mirrors src/kazllm/eval/benchmarks.py — the engine's lm-eval plumbing.
+# Only KazMMLU (Kazakh subset) is runnable here, via the bundled custom task dir
+# src/kazllm/eval/tasks/kazmmlu_kaz (lm-eval task: kazmmlu_kaz). TUMLU-mini,
+# KazQAD, and FLORES-200 have no runner in this package — the canonical home for
+# all published benchmark numbers is evallab/ (package kazeval).
 benchmarks:
   - name: kazmmlu
-    num_fewshot: 5
-    batch_size: 16
-  - name: tumlu_mini
-    num_fewshot: 5
-    batch_size: 16
-  - name: kazqad
-    num_fewshot: 0
-    batch_size: 8
-  - name: flores200_kaz_eng
-    metric: chrf
-    batch_size: 16
-  - name: flores200_kaz_rus
-    metric: chrf
+    # Dev-limited: KazMMLU dev has only 3 exemplars per subject => 3-shot max.
+    num_fewshot: 3
     batch_size: 16
 
-model_dtype: bfloat16
-results_dir: evals
+model_dtype: float16 # RTX 2070 (Turing, sm_75) has no bf16
+results_dir: results # committed-friendly; evals/ is gitignored

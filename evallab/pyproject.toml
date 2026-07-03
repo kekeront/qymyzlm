@@ -8,6 +8,7 @@ dependencies = [
     "datasets>=2.20.0",
     "lm-eval>=0.4.3",
     "huggingface-hub>=0.23.0",
+    "defusedxml>=0.7.1",
 ]
 
 [build-system]
@@ -16,3 +17,10 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/kazeval"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# The shell sources ROS Humble (PYTHONPATH -> /opt/ros/.../python3.10); its
+# pytest entry-point plugins crash under the py3.11 venv (missing lark etc.) —
+# keep them out of lab test runs.
+addopts = "-p no:launch_testing -p no:launch_ros -p no:ament_copyright -p no:ament_flake8 -p no:ament_lint -p no:ament_pep257 -p no:ament_xmllint"

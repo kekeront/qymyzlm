@@ -58,5 +58,7 @@ select = ["E", "F", "I", "N", "UP"]
 quote-style = "double"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-v --tb=short"
+testpaths = ["tests", "embed/tests", "evallab/tests"]
+# ROS Humble (sourced in the user shell) leaks py3.10 pytest entry-point plugins
+# via PYTHONPATH; they crash under the py3.11 venv — keep them out of lab runs.
+addopts = "-v --tb=short -p no:launch_testing -p no:launch_ros -p no:ament_copyright -p no:ament_flake8 -p no:ament_lint -p no:ament_pep257 -p no:ament_xmllint"

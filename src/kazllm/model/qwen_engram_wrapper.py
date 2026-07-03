@@ -1,8 +1,11 @@
 """QymyzLM: Engram wrapper for Qwen-2.5 (or any HuggingFace causal LM).
 
 Grafts EngramModule onto a pretrained Qwen model by wrapping specified decoder
-layers. The base model is NOT modified — Engram modules are attached as separate
-nn.Module instances that inject memory before each wrapped layer's computation.
+layers. The base model's WEIGHTS are preserved — Engram modules are attached as
+separate nn.Module instances that inject memory before each wrapped layer's
+computation. Note: wrapping replaces layer modules in-place, so state_dict keys
+of wrapped layers gain a ``.layer`` segment (``layers.2.X`` → ``layers.2.layer.X``);
+saving the grafted model is NOT state_dict-compatible with the vanilla base.
 
 Usage:
     from transformers import AutoModelForCausalLM
@@ -25,8 +28,8 @@ log = logging.getLogger(__name__)
 class EngramConfig:
     """Engram hyperparameters for grafting onto a pretrained model."""
 
-    layer_indices: list[int] = None
-    ngram_orders: list[int] = None
+    layer_indices: list[int] | None = None
+    ngram_orders: list[int] | None = None
     num_heads: int = 4
     table_size: int = 500_003
     slot_dim: int = 64
@@ -113,7 +116,7 @@ class QymyzForCausalLM(nn.Module):
 
         log.info(
             f"QymyzLM: grafted Engram at layers {self._wrapped_indices} "
-            f"({sum(p.numel() for p in self.engram_parameters())/1e6:.1f}M new params)"
+            f"({sum(p.numel() for p in self.engram_parameters()) / 1e6:.1f}M new params)"
         )
 
     def _get_decoder_layers(self) -> nn.ModuleList:

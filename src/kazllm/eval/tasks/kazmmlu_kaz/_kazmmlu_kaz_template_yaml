@@ -1,0 +1,18 @@
+dataset_path: MBZUAI/KazMMLU
+test_split: test
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+# KazMMLU dev splits have only 3 examples per config -> 3-shot is the max
+# possible with fewshot_split: dev (first_n asserts n <= len(dev)).
+num_fewshot: 3
+output_type: multiple_choice
+doc_to_text: !function utils.doc_to_text
+doc_to_choice: !function utils.doc_to_choice
+doc_to_target: !function utils.doc_to_target
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

@@ -1,56 +1,35 @@
-.PHONY: data data-local tokenizer tokenizer-local pack pack-local \
-        train train-debug train-500m train-nano eval sft install lint test
+# QymyzLM engine — only targets whose scripts exist on disk.
+# Workspace venv lives at .venv/ (uv workspace root; shared with embed/ and evallab/).
+
+.PHONY: install lint test benchmark benchmark-quick qlora
+
+PY := .venv/bin/python
+RUFF := .venv/bin/ruff
+
+TOKENS ?= 100_000_000
 
 install:
-	uv sync --all-extras
+	uv sync --all-packages --all-extras
 
 lint:
-	ruff check src/ tests/ scripts/
-	ruff format --check src/ tests/ scripts/
+	$(RUFF) check src scripts tests
+	$(RUFF) format --check src scripts tests
 
+# PYTHONPATH is cleared: system/ROS dist-packages on PYTHONPATH break pytest
+# plugin autoload (e.g. ROS launch_testing pulls in a missing 'lark').
 test:
-	PYTHONPATH=src pytest tests/ -v
+	PYTHONPATH= $(PY) -m pytest tests -q
 
-# --- Full pipeline (GCP / large disk) ---
-data:
-	PYTHONPATH=src python scripts/download_data.py
-	PYTHONPATH=src python scripts/clean_data.py
+# --- Real pipelines ---
 
-tokenizer:
-	PYTHONPATH=src python scripts/train_tokenizer.py tokenizer=unigram_50k
+# KazMMLU 3-shot baseline benchmark (dev-limited: 3 exemplars/subject;
+# downloads models + MBZUAI/KazMMLU)
+benchmark:
+	$(PY) scripts/benchmark_baselines.py
 
-pack:
-	PYTHONPATH=src python scripts/pack_data.py
+benchmark-quick:
+	$(PY) scripts/benchmark_baselines.py --quick
 
-# --- Local validation pipeline (Wikipedia + multidomain only, fast) ---
-data-local:
-	PYTHONPATH=src python scripts/download_data.py data=local_validate
-	PYTHONPATH=src python scripts/clean_data.py data=local_validate
-
-tokenizer-local:
-	PYTHONPATH=src python scripts/train_tokenizer.py data=local_validate tokenizer=unigram_50k
-
-pack-local:
-	PYTHONPATH=src python scripts/pack_data.py data=local_validate training=pretrain_debug
-
-# --- Training ---
-train:
-	accelerate launch --config_file configs/accelerate_fsdp.yaml scripts/train.py
-
-train-debug:
-	PYTHONPATH=src python scripts/train.py training=pretrain_debug model=kaz50m_debug \
-		data=local_validate
-
-train-nano:
-	PYTHONPATH=src python scripts/train.py model=kaz_nano training=pretrain_nano \
-		data=local_validate
-
-train-500m:
-	PYTHONPATH=src python scripts/train.py model=kaz500m training=pretrain_500m
-
-# --- Eval & SFT ---
-eval:
-	PYTHONPATH=src python scripts/evaluate.py
-
-sft:
-	PYTHONPATH=src python scripts/train_sft.py training=sft_lora
+# 4-bit QLoRA continual pretraining on streamed Kazakh data (RTX 2070 OK)
+qlora:
+	$(PY) scripts/qlora_continual.py --tokens $(TOKENS)

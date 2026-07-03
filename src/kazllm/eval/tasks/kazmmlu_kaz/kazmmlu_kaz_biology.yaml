@@ -1,0 +1,4 @@
+"include": "_kazmmlu_kaz_template_yaml"
+"task": "kazmmlu_kaz_biology"
+"dataset_name": "Biology (High School in kaz)"
+"task_alias": "biology"

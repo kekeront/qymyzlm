@@ -1,0 +1,4 @@
+"include": "_kazmmlu_kaz_template_yaml"
+"task": "kazmmlu_kaz_physics"
+"dataset_name": "Physics (High School in kaz)"
+"task_alias": "physics"

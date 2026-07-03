@@ -1,0 +1,4 @@
+"include": "_kazmmlu_kaz_template_yaml"
+"task": "kazmmlu_kaz_geography"
+"dataset_name": "Geography (High School in kaz)"
+"task_alias": "geography"

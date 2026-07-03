@@ -1,0 +1,19 @@
+group: kazmmlu_kaz
+task:
+  - kazmmlu_kaz_biology
+  - kazmmlu_kaz_chemistry
+  - kazmmlu_kaz_geography
+  - kazmmlu_kaz_informatics
+  - kazmmlu_kaz_kazakh_history
+  - kazmmlu_kaz_kazakh_language
+  - kazmmlu_kaz_kazakh_literature
+  - kazmmlu_kaz_law
+  - kazmmlu_kaz_math
+  - kazmmlu_kaz_physics
+  - kazmmlu_kaz_reading_literacy
+  - kazmmlu_kaz_world_history
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: true
+metadata:
+  version: 1.0
