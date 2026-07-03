@@ -25,18 +25,18 @@ uv sync --all-packages --all-extras   # one env for the whole workspace
 
 ## Goal
 
-Beat [Sherkala-Chat-8B](https://arxiv.org/abs/2503.01493) (41.4% KazMMLU) with a **sub-1B parameter** model through:
+Close the gap to [Sherkala-Chat-8B](https://arxiv.org/abs/2503.01493) (41.4% KazMMLU — reported, not yet re-run under our harness) with a **sub-1B active-parameter** model. First checkpoint: beat Qwen3-0.6B-Base (32.8%, measured here) by ≥3pp. Levers:
 
 1. **QLoRA continual pretraining** on high-quality Kazakh data
 2. **Engram** — sparse N-gram memory for agglutinative suffix patterns (0 extra FLOPs)
 3. **Kazakh SFT** — instruction tuning with teacher-distilled reasoning
 4. **Test-Time Scaling** — Process Reward Model for best-of-N inference
 
-## Baseline Results (KazMMLU 5-shot, Kazakh subset)
+## Baseline Results (KazMMLU 3-shot, Kazakh subset)
 
-Evaluated on 9,870 Kazakh-language questions from [MBZUAI/KazMMLU](https://huggingface.co/datasets/MBZUAI/KazMMLU). All models run on RTX 2070 in fp16, April 2026.
+Evaluated on 9,870 Kazakh-language questions from [MBZUAI/KazMMLU](https://huggingface.co/datasets/MBZUAI/KazMMLU). Non-italic rows measured on RTX 2070 in fp16, April 2026; *italic rows are reported numbers from their papers (different harness — not directly comparable)*. Shot count: the KazMMLU dev split holds only 3 exemplars per subject, so runs previously labeled "5-shot" were effectively **3-shot**.
 
-| Model | Params | KazMMLU 5-shot | Tok/word | Tok/sec |
+| Model | Params | KazMMLU 3-shot | Tok/word | Tok/sec |
 |-------|--------|---------------|----------|---------|
 | **Qwen2.5-1.5B** | 1.54B | **34.3%** | 4.88 | 35.6 |
 | **Qwen3-0.6B-Base** | 0.6B | **32.8%** | 4.88 | 31.3 |
@@ -56,7 +56,7 @@ Evaluated on 9,870 Kazakh-language questions from [MBZUAI/KazMMLU](https://huggi
 - **From-scratch Kazakh models fail** — Ekitil has elite tokenizer (1.43 tok/word) but scores below random on knowledge tasks
 - **Fine-tuning > training from scratch** — multilingual pretraining provides free world knowledge
 
-**Primary target: Qwen3-0.6B-Base** — 32.8% baseline, 8.6% gap to Sherkala-8B.
+**Primary target: Qwen3-0.6B-Base** — 32.8% baseline; nominal gap to Sherkala-8B is 8.6pp, but that ceiling is cross-protocol (their paper's harness) until Sherkala is re-run through our runner.
 
 ## Pipeline
 
