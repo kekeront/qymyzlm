@@ -1,19 +1,19 @@
 # QymyzLM
 
-**Can a 0.6B model beat an 8B model at Kazakh?**
+**Reproducible Kazakh language models.** Every number here comes from an open runner, on a pinned dataset, that you can re-run yourself — and each is labelled `measured` (we ran it) or `reported` (someone else's number, shown for context, never as our own).
 
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.3+-EE4C2C?logo=pytorch&logoColor=white)
 ![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue)
 ![Kazakh](https://img.shields.io/badge/Language-Kazakh-green)
 
-Monorepo of the Kazakh model campaign — three packages, one uv workspace:
+Monorepo of the Kazakh model campaign — one uv workspace, three packages:
 
 | Package | Dir | What it is |
 |---------|-----|------------|
-| `qymyzlm` (import `kazllm`) | `src/` | THE ENGINE: Kazakh SLM — Engram n-gram memory, QLoRA continual pretraining, benchmark study |
-| `qymyz-embed` | `embed/` | QymyzEmbed: best Kazakh text-embedding model (target: beat off-the-shelf mE5-large on KazQAD under evallab's pinned protocol) |
-| `kazeval` | `evallab/` | Benchmarking lab: KazQAD retrieval/reranking (kk-MTEB), KazMMLU, Qorgau guardrails — ALL published numbers come from runners here |
+| `kazeval` | `evallab/` | Benchmarking lab — **the single source of truth for every number in this repo** (KazQAD retrieval/reranking, KazMMLU). See the [leaderboard](evallab/). |
+| `qymyz-embed` | `embed/` | Kazakh text-embedding model — **active track**: beat off-the-shelf mE5-large on KazQAD under evallab's pinned protocol. |
+| `qymyzlm` (import `kazllm`) | `src/` | Kazakh SLM engine — **planned track**: ≤600M active params, Engram n-gram memory, QLoRA continual pretraining. |
 
 Sibling project: [kazakh-nlp-atlas](https://github.com/kekeront/kazakh-nlp-atlas) — data-driven survey of Kazakh NLP + frontier knowledge base.
 
@@ -23,68 +23,62 @@ uv sync --all-packages --all-extras   # one env for the whole workspace
 
 ---
 
-## Goal
+## Reproducibility first
 
-Close the gap to [Sherkala-Chat-8B](https://arxiv.org/abs/2503.01493) (41.4% KazMMLU — reported, not yet re-run under our harness) with a **sub-1B active-parameter** model. First checkpoint: beat Qwen3-0.6B-Base (32.8%, measured here) by ≥3pp. Levers:
+This is the point of the whole repo. Every published number comes from a `kazeval` runner: a **pinned dataset revision**, the **exact protocol saved in the record**, fp16 on free Kaggle GPUs. Full leaderboard → [`evallab/`](evallab/).
 
-1. **QLoRA continual pretraining** on high-quality Kazakh data
-2. **Engram** — sparse N-gram memory for agglutinative suffix patterns (0 extra FLOPs)
-3. **Kazakh SFT** — instruction tuning with teacher-distilled reasoning
-4. **Test-Time Scaling** — Process Reward Model for best-of-N inference
+**First measured results (2026-07) — off-the-shelf `intfloat/multilingual-e5-large` on KazQAD:**
 
-## Baseline Results (KazMMLU 3-shot, Kazakh subset)
+| Task | Metric | mE5-large (`measured`) | reference (`reported`) |
+|------|--------|:----:|--------|
+| KazQAD retrieval — full 825,309-passage corpus | NDCG@10 | **0.329** | 0.389 — KazQAD paper's tuned pipeline |
+| KazQAD reranking — pinned hard-neg protocol | MRR@10 | **0.654** | 0.909 — kazembed-v5 card — **does not reproduce** |
 
-Evaluated on 9,870 Kazakh-language questions from [MBZUAI/KazMMLU](https://huggingface.co/datasets/MBZUAI/KazMMLU). Non-italic rows measured on RTX 2070 in fp16, April 2026; *italic rows are reported numbers from their papers (different harness — not directly comparable)*. Shot count: the KazMMLU dev split holds only 3 exemplars per subject, so runs previously labeled "5-shot" were effectively **3-shot**.
+The widely-cited "mE5-large MRR 0.909 on KazQAD" **does not reproduce** under a published protocol: its candidate pools were never released, and the same model scores **0.65**, not 0.91. Closing gaps like that — turning folklore into numbers you can check — is why this repo exists. (Full-corpus 0.329 sits honestly *below* the paper's tuned pipeline; off-the-shelf, untuned, reported as-is.)
 
-| Model | Params | KazMMLU 3-shot | Tok/word | Tok/sec |
-|-------|--------|---------------|----------|---------|
-| **Qwen2.5-1.5B** | 1.54B | **34.3%** | 4.88 | 35.6 |
-| **Qwen3-0.6B-Base** | 0.6B | **32.8%** | 4.88 | 31.3 |
-| Qwen2.5-0.5B | 0.49B | 28.8% | 4.88 | 37.2 |
-| Gemma3-1B-it | 1.0B | 28.7% | 3.27 | 19.2 |
-| Llama-3.2-1B | 1.24B | 25.1% | 4.80 | 46.8 |
-| Gemma3-270M | 0.27B | 24.4% | 3.27 | 28.5 |
-| Ekitil-Qwen3-600M | 0.67B | 23.7% | 1.43 | 22.8 |
-| Ekitil-Qwen3-300M | 0.25B | 23.5% | 1.43 | 48.7 |
-| Random baseline | — | 25.0% | — | — |
-| *Sherkala-Chat-8B* | *8B* | *41.4%* | *2.04* | *—* |
-| *Llama-3.1-70B* | *70B* | *55.2%* | *4.73* | *—* |
+---
 
-**Key findings:**
-- **Qwen dominates** at small scale — Qwen3-0.6B beats every other sub-2B model
-- **Llama-3.2-1B is random-level** (25.1%) — zero Kazakh knowledge
-- **From-scratch Kazakh models fail** — Ekitil has elite tokenizer (1.43 tok/word) but scores below random on knowledge tasks
-- **Fine-tuning > training from scratch** — multilingual pretraining provides free world knowledge
+## Track 1 — Kazakh embeddings (active)
 
-**Primary target: Qwen3-0.6B-Base** — 32.8% baseline; nominal gap to Sherkala-8B is 8.6pp, but that ceiling is cross-protocol (their paper's harness) until Sherkala is re-run through our runner.
+**Goal:** the best Kazakh text-embedding model. **Bar:** beat off-the-shelf mE5-large on KazQAD under evallab's pinned protocol, then #1 on kk-MTEB. First fine-tune (Less-is-More on mE5) targets **≥ +2.0 NDCG@10** over the measured baseline above.
 
-## Pipeline
+## Track 2 — Kazakh SLM ≤600M (planned)
 
-```bash
-# 1. Benchmark any model
-python scripts/benchmark_baselines.py --models Qwen/Qwen3-0.6B-Base
+**Goal:** a sub-1B-active model competitive on KazMMLU. **Levers:** QLoRA continual pretraining · Engram sparse n-gram memory (0 extra FLOPs) · Kazakh SFT · test-time scaling. Reachability on free compute is an **open question**, gated by a token-budget study before any paid run.
 
-# 2. QLoRA continual PT on Kazakh data (Kaggle free GPU: T4/P100, 16 GB)
-python scripts/qlora_continual.py --tokens 100_000_000
+Generative baselines — KazMMLU 3-shot, 9,870 Kazakh questions ([MBZUAI/KazMMLU](https://huggingface.co/datasets/MBZUAI/KazMMLU)). `measured` = our runner, fp16; *italic* = reported (different harness, context only). The dev split holds only 3 exemplars/subject, so earlier "5-shot" runs were effectively **3-shot**.
 
-# 3. Benchmark the fine-tuned model
-python scripts/benchmark_baselines.py --models checkpoints/qlora_qwen3-0.6b-base_100m
-```
+| Model | Params | KazMMLU 3-shot | Tok/word |
+|-------|--------|:----:|:----:|
+| Qwen2.5-1.5B | 1.54B | 34.3% | 4.88 |
+| **Qwen3-0.6B-Base** (primary target) | 0.6B | **32.8%** | 4.88 |
+| Qwen2.5-0.5B | 0.49B | 28.8% | 4.88 |
+| Gemma3-1B-it | 1.0B | 28.7% | 3.27 |
+| Llama-3.2-1B | 1.24B | 25.1% | 4.80 |
+| Ekitil-Qwen3-600M (Kazakh-adapted Qwen) | 0.67B | 23.7% | 1.43 |
+| Random baseline | — | 25.0% | — |
+| *Sherkala-Chat-8B* | *8B* | *41.4%* | *2.04* |
+| *Llama-3.1-70B* | *70B* | *55.2%* | *4.73* |
+
+**Takeaways:** Qwen dominates at small scale (Qwen3-0.6B beats every other sub-2B model). Ekitil — a Kazakh-adapted Qwen with an elite tokenizer (1.43 tok/word) — still scores below random on knowledge: **a good tokenizer is not knowledge**. The gap to Sherkala-8B is cross-protocol until Sherkala is re-run through our runner.
+
+---
 
 ## Roadmap
 
-- [x] Baseline eval: 8 models on KazMMLU
-- [ ] QLoRA continual PT: 100M / 200M / 400M Kazakh tokens
-- [ ] Kazakh SFT: teacher-distilled instruction data
-- [ ] Engram integration: suffix-pattern memory
-- [ ] Test-Time Scaling: PRM + best-of-N inference
+- [x] KazMMLU generative baselines (8 models, `measured`)
+- [x] **First reproducible KazQAD embedding numbers (mE5-large) — 0.909 folklore refuted**
+- [ ] KazQAD leaderboard v0 — BGE-M3, Qwen3-Embedding, LaBSE, MiniLM
+- [ ] First `qymyz-embed` fine-tune (Less-is-More) — beat the mE5-large baseline
+- [ ] Generative track: token-budget go/no-go → QLoRA continual PT
 
 ## References
 
-- [Engram](https://arxiv.org/abs/2601.07372) — Conditional N-gram memory (DeepSeek-AI)
+- [KazQAD](https://arxiv.org/abs/2404.04487) — Kazakh open-domain QA + retrieval (LREC-COLING 2024)
+- [KazMMLU](https://arxiv.org/abs/2502.12829) — Kazakh MMLU, ACL 2025 (23K questions)
 - [Sherkala](https://arxiv.org/abs/2503.01493) — 8B Kazakh continual PT (ISSAI)
 - [SozKZ](https://arxiv.org/abs/2603.20854) — 600M Kazakh from scratch
-- [KazMMLU](https://arxiv.org/abs/2502.12829) — ACL 2025, 23K questions
+- [Engram](https://arxiv.org/abs/2601.07372) — conditional N-gram memory (DeepSeek-AI)
 
 ## License
 
