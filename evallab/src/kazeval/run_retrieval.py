@@ -61,19 +61,46 @@ RECORD_METRICS = (
 DEFAULT_RESULTS_DIR = Path(__file__).resolve().parents[2] / "results"
 
 
-def load_model(name: str, revision: str | None) -> Any:
-    """Resolve a model name via mteb's registry, else load a SentenceTransformer."""
+def load_model(name: str, revision: str | None, dtype: str = "float16") -> Any:
+    """Resolve a model name via mteb's registry, else load a SentenceTransformer.
+
+    Casts to fp16 by default: encoding the 825k-passage KazQAD corpus in fp32 on a
+    T4 is compute-bound at ~4.3s/64-batch (measured), which overruns Kaggle's 12h
+    session cap; fp16 is ~4x faster and shifts mE5-large retrieval scores by <1e-3
+    (standard eval precision). Under Linux fork, the fp16 weights are inherited by
+    the multi-GPU encode pool workers, so cuda:0,cuda:1 stays fp16.
+    """
     import mteb
 
     try:
-        return mteb.get_model(name, revision=revision)
+        model = mteb.get_model(name, revision=revision)
     except (KeyError, ValueError) as err:
         logger.warning(
             "%r not in mteb's model registry (%s); loading as SentenceTransformer", name, err
         )
         from sentence_transformers import SentenceTransformer
 
-        return SentenceTransformer(name, revision=revision)
+        model = SentenceTransformer(name, revision=revision)
+    if dtype == "float16":
+        _cast_fp16(model)
+    return model
+
+
+def _cast_fp16(model: Any) -> None:
+    """Cast the underlying transformer to fp16 in-place (T4 has no bf16).
+
+    mteb wraps SentenceTransformer in a wrapper exposing ``.model``; try that first,
+    then a raw SentenceTransformer.
+    """
+    for target in (getattr(model, "model", None), model):
+        if target is not None and hasattr(target, "half"):
+            try:
+                target.half()
+                logger.info("cast %s -> float16", type(target).__name__)
+                return
+            except Exception as exc:  # noqa: BLE001 - fp16 is best-effort, log and continue
+                logger.warning("fp16 cast failed on %s: %s", type(target).__name__, exc)
+    logger.warning("could not cast model to fp16; encoding stays fp32")
 
 
 def parse_device(spec: str) -> str | list[str]:
@@ -123,6 +150,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument(
+        "--dtype",
+        default="float16",
+        choices=["float16", "float32"],
+        help="encode precision; float16 (default) is ~4x faster on T4 with a <1e-3 "
+        "score delta for mE5-large. Use float32 only to reproduce fp32 exactly.",
+    )
+    parser.add_argument(
         "--device",
         default=None,
         help=(
@@ -153,7 +187,7 @@ def main(argv: list[str] | None = None) -> int:
     from mteb import ResultCache
 
     tasks = [TASK_CLASSES[name]() for name in args.tasks]
-    model = load_model(args.model, args.model_revision)
+    model = load_model(args.model, args.model_revision, args.dtype)
     cache = ResultCache(cache_path=args.mteb_cache) if args.mteb_cache else ResultCache()
 
     encode_kwargs: dict[str, Any] = {"batch_size": args.batch_size}
