@@ -1,7 +1,8 @@
 """KazQADRetrieval — full-corpus Kazakh open-domain QA retrieval (mteb 2.x task).
 
-Protocol: 1,929 test questions against the full ~815k-passage Kazakh Wikipedia
-corpus of ``issai/kazqad-retrieval`` (pinned revision). This is the setting of the
+Protocol: 1,929 test questions against the full 825,309-passage Kazakh Wikipedia
+corpus of ``issai/kazqad-retrieval`` (pinned revision; row counts measured via the
+HF datasets-server, 2026-07-04). This is the setting of the
 KazQAD paper's retrieval experiments (arXiv:2404.04487), so NDCG@10 / MRR here are
 comparable to the paper's reported baselines (NDCG@10 0.389 / MRR 0.382).
 
@@ -42,7 +43,7 @@ class KazQADRetrieval(AbsTaskRetrieval):
         description=(
             "Kazakh open-domain question answering retrieval: Natural-Questions-translated "
             "and Unified National Testing questions with human relevance judgements over a "
-            "~815k-passage Kazakh Wikipedia corpus (KazQAD)."
+            "825,309-passage Kazakh Wikipedia corpus (KazQAD)."
         ),
         reference="https://arxiv.org/abs/2404.04487",
         dataset={"path": KAZQAD_REPO, "revision": KAZQAD_REVISION},
@@ -77,10 +78,11 @@ class KazQADRetrieval(AbsTaskRetrieval):
         for split in self.metadata.eval_splits:
             split_rows = queries_and_passages[split]
             relevant_docs: dict[str, dict[str, int]] = {
-                row["id"]: {p["docid"]: 1 for p in row["positive_passages"]} for row in split_rows
+                row["query_id"]: {p["docid"]: 1 for p in row["positive_passages"]}
+                for row in split_rows
             }
             queries = split_rows.map(
-                lambda row: {"id": row["id"], "text": row["question"]},
+                lambda row: {"id": row["query_id"], "text": row["query"]},
                 remove_columns=split_rows.column_names,
             )
             self.dataset.setdefault("default", {})[split] = RetrievalSplitData(

@@ -46,7 +46,7 @@ src/kazllm/
 └── utils/                      # io.py (atomic JSON, shard paths), logging.py (rank-aware), seed.py
 scripts/
 ├── benchmark_baselines.py      # KazMMLU 3-shot bench: accuracy + fertility + speed (PEFT-aware)
-└── qlora_continual.py          # 4-bit QLoRA continual PT on streamed Kazakh data (RTX 2070 OK)
+└── qlora_continual.py          # 4-bit QLoRA continual PT on streamed Kazakh data (Kaggle T4/P100 OK)
 configs/
 ├── eval/default.yaml           # benchmark list + dtype defaults (mirrors eval/benchmarks.py)
 └── training/sft_lora.yaml      # planned SFT stage — no consumer script yet
@@ -165,22 +165,23 @@ see `SOURCES` in scripts/qlora_continual.py.)
 
 ## Hardware Notes
 
-### RTX 2070 (8GB VRAM) — what it can do:
-- Data preprocessing, tokenizer training, debugging code: ✓
-- Inference of quantized models (4-bit 1B: ~0.5GB): ✓
-- QLoRA fine-tuning of 500M-3B (4-bit base): ✓ ← **the current pipeline**
-- Full pretraining of 50M debug model: ✓
-- Full pretraining of 500M+: ✗ (need ~15-20GB for model + optimizer + mHC activations)
+### Compute policy (2026-07-04): Kaggle free plan is the canonical GPU
+RTX 2070 is ABANDONED for GPU runs (April-2026 baseline numbers measured on it stay valid
+as historical records). All GPU work goes to Kaggle:
+- Quota: 30 GPU-hours/week, sessions up to ~12 h, internet ON (verify phone), gated HF
+  datasets via `HF_TOKEN` in Kaggle Secrets.
+- GPUs: P100 16 GB (sm_60) or T4×2 (2×16 GB, sm_75). NEITHER has bf16 — the codebase's
+  fp16 auto-detect path (Turing-tested) carries over unchanged.
+- Launchers live in `evallab/kaggle/` — a notebook clones this repo from GitHub, so runs
+  always need the latest `main` PUSHED first.
+- Local box = CPU-only duties: tests, ruff, data preprocessing, BM25/hardneg builds,
+  leaderboard rendering.
 
-### GCP Instance Guide (for v2 pretraining):
-| Instance | GPUs | VRAM | Use For | Spot Price |
-|----------|------|------|---------|------------|
-| `a2-highgpu-1g` | 1× A100 40GB | 40GB | **500M pretraining** | ~$3.67/hr |
-| `a2-highgpu-2g` | 2× A100 40GB | 80GB | 1B pretraining | ~$7.35/hr |
-| `a2-highgpu-4g` | 4× A100 40GB | 160GB | 1B fast or multi-exp | ~$14.69/hr |
-| `a2-ultragpu-1g` | 1× A100 80GB | 80GB | 1B pretraining | ~$4.63/hr |
-
-Use preemptible (spot) instances — 60-70% cheaper. Save checkpoints every 2K steps.
+What fits on one Kaggle session: full-corpus KazQAD encode with mE5-large (~1-3 h),
+KazMMLU 3-shot for ≤8B in 4-bit, QLoRA continual PT of ≤3B (checkpoint every ≤2K steps —
+sessions die at quota/12 h), Less-is-More embed fine-tune (~10k pairs, minutes-hours).
+What does NOT fit: full pretraining of 500M+ (needs paid A100-class — out of the locked
+free-compute course; revisit only with grant/sponsor compute).
 
 ---
 

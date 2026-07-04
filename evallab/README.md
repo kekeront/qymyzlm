@@ -8,7 +8,7 @@ record in `results/` — nothing below the markers is ever edited by hand.
 
 | Track | Tasks | Runner |
 |---|---|---|
-| Embedding / retrieval | `KazQADRetrieval` (full ~815k-passage corpus, comparable to arXiv:2404.04487), `KazQADReranking` + `KazQAD-HardNeg` (deterministic `kazqad-hardneg-bm25-v1` protocol, `kazeval.hardneg`) | `python -m kazeval.run_retrieval` |
+| Embedding / retrieval | `KazQADRetrieval` (full 825,309-passage corpus, comparable to arXiv:2404.04487), `KazQADReranking` + `KazQAD-HardNeg` (deterministic `kazqad-hardneg-bm25-v1` protocol, `kazeval.hardneg`) | `python -m kazeval.run_retrieval` |
 | Generative | `KazMMLU-kk` — Kazakh subset of MBZUAI/KazMMLU, 12 subjects, 9,870 test questions, **3-shot** (dev holds only 3 exemplars/subject; historical "5-shot" numbers were effectively 3-shot) | `python -m kazeval.run_kazmmlu` |
 | Safety | `Qorgau-kk` (arXiv:2502.13640) — **no license declared upstream ⇒ eval-only, never train on it**; loaders in `kazeval.qorgau`, judge protocol not wired yet | — |
 
@@ -27,6 +27,11 @@ python -m kazeval.leaderboard
 # CI-style staleness check (exit 2 if the section is out of date)
 python -m kazeval.leaderboard --check
 ```
+
+**GPU runs happen on Kaggle** (compute policy 2026-07-04: free plan, T4×2/P100 16 GB fp16,
+30 GPU-h/week): upload `kaggle/kazeval_kaggle.ipynb`, add `HF_TOKEN` to Kaggle Secrets,
+push `main` first (the notebook clones this repo from GitHub). Download the produced
+JSON records into `results/` and re-render the leaderboard locally.
 
 Both runners write one validated record per (task, split) into `results/`
 (`provenance: measured`); externally sourced numbers are committed as

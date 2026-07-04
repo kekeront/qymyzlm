@@ -3,7 +3,7 @@
 ## Goal
 Beat mE5-large MRR 0.909 on KazQAD hard-negatives; #1 on kk-MTEB. Two phases:
 1. **v0 (now)**: fine-tune mE5-base per Less-is-More protocol (arXiv 2603.22290) — ~10k clean pairs,
-   0.5/0.5 weight averaging with the base model, fits RTX 2070/Colab. Open question we answer:
+   0.5/0.5 weight averaging with the base model, fits Kaggle free GPUs (T4/P100, 16 GB). Open question we answer:
    Cyrillic script overlap (paper §6.2).
 2. **v1 (later)**: embedding head on our own QymyzLM SLM (LLM2Vec post-hoc vs GRIT joint —
    decision goes through /design-panel, not ad-hoc).
@@ -14,7 +14,7 @@ Beat mE5-large MRR 0.909 on KazQAD hard-negatives; #1 on kk-MTEB. Two phases:
 ## Hard constraints
 - Every eval number comes from `evallab/` runners — never self-reported ad-hoc.
 - Training data licenses checked before use (Qorgau: no license — do NOT train on it).
-- Free compute only (RTX 2070 / Colab / Kaggle) — locked course 2026-07-03.
+- Free compute only — Kaggle free plan is the canonical GPU (RTX 2070 abandoned 2026-07-04).
 - e5 models require "query: " / "passage: " prefixes — keep them consistent in train AND eval.
 
 ## Done means

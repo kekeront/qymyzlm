@@ -2,7 +2,7 @@
   "model": "BM25 + fine-tuned reranker (KazQAD paper best pipeline)",
   "revision": null,
   "task": "KazQADRetrieval",
-  "protocol": "Full-corpus retrieval: 1,929 KazQAD test questions vs the ~815k-passage Kazakh Wikipedia corpus; best pipeline of the KazQAD paper (BM25 candidate generation + fine-tuned neural reranker, Table 4).",
+  "protocol": "Full-corpus retrieval: 1,929 KazQAD test questions vs the 825,309-passage Kazakh Wikipedia corpus; best pipeline of the KazQAD paper (BM25 candidate generation + fine-tuned neural reranker, Table 4).",
   "split": "test",
   "metrics": {
     "ndcg_at_10": 0.389,

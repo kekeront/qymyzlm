@@ -4,13 +4,14 @@ Protocol (paper defaults): ~10,000 pairs, FULL fine-tune, effective batch 512, l
 5 epochs, linear scheduler with 0.2 warmup ratio, then a 0.5/0.5 weight average with the
 base model (qymyz_embed.merge).
 
-Effective batch 512 on the RTX 2070 (8 GB): CachedMultipleNegativesRankingLoss (GradCache)
-with per_device_train_batch_size=512 — memory is bounded by mini_batch_size, NOT the batch
-size. gradient_accumulation_steps is pinned to 1 because accumulation does NOT enlarge the
-in-batch-negative pool for (Cached)MNRL.
+Effective batch 512 even on 8-16 GB cards (Kaggle T4/P100):
+CachedMultipleNegativesRankingLoss (GradCache) with per_device_train_batch_size=512 —
+memory is bounded by mini_batch_size, NOT the batch size. gradient_accumulation_steps is
+pinned to 1 because accumulation does NOT enlarge the in-batch-negative pool for
+(Cached)MNRL.
 
-Turing GPU: fp16 yes, bf16 NO. warmup is passed as warmup_steps=0.2 (float == ratio;
-warmup_ratio is deprecated under transformers v5).
+Kaggle T4 (Turing) / P100 (Pascal): fp16 yes, bf16 NO. warmup is passed as
+warmup_steps=0.2 (float == ratio; warmup_ratio is deprecated under transformers v5).
 
 Usage:
     python -m qymyz_embed.train_lim --data pairs.jsonl

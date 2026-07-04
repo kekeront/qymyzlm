@@ -38,7 +38,7 @@ TASK_CLASSES = {
 
 TASK_PROTOCOLS = {
     "KazQADRetrieval": (
-        "Full-corpus retrieval: KazQAD test questions vs the ~815k-passage Kazakh "
+        "Full-corpus retrieval: KazQAD test questions vs the 825,309-passage Kazakh "
         "Wikipedia corpus (issai/kazqad-retrieval, pinned revision); comparable to "
         "arXiv:2404.04487 baselines (best pipeline NDCG@10 0.389 / MRR 0.382)."
     ),

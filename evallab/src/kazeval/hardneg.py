@@ -10,7 +10,7 @@ fixes OUR canonical, fully deterministic replacement protocol:
     * Candidate pool: the union of all judged passages (``positive_passages`` +
       ``negative_passages``) across the train/validation/test splits of
       ``issai/kazqad-retrieval`` @ ``a3999685b5a1eed05b2453233875a14671cc6a4f``,
-      deduplicated by ``docid``. No 815k-passage corpus download is needed.
+      deduplicated by ``docid``. No 825,309-passage corpus download is needed.
     * Document text for scoring: ``f"{title} {text}"``.
     * Tokenization: ``str.casefold()`` then Unicode ``\\w+`` (works for kk Cyrillic).
     * Scoring: BM25 with the Lucene idf variant

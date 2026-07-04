@@ -2,18 +2,20 @@
 """QLoRA continual pretraining for any HF model on Kazakh data.
 
 Streams Kazakh text from HuggingFace, trains with 4-bit QLoRA.
-Fits on RTX 2070 (8GB) for models up to ~3B. Mixed precision is auto-detected:
-bf16 on Ampere+ (sm_80+), fp16 otherwise (RTX 2070 is Turing/sm_75 — no bf16).
+Fits on Kaggle free GPUs (T4/P100, 16 GB) for models up to ~3B. Mixed precision is
+auto-detected: bf16 on Ampere+ (sm_80+), fp16 otherwise (T4 is Turing/sm_75, P100 is
+Pascal/sm_60 — no bf16 on either).
 
 Wall-clock: [UNVERIFIED until measured]. Formula estimate for 100M tokens of a
-4-bit 0.6B with gradient checkpointing on RTX 2070 at ~2-5K tok/s throughput:
+4-bit 0.6B with gradient checkpointing on a T4-class GPU at ~2-5K tok/s throughput:
 100e6 / (2e3..5e3) tok/s ≈ 6-14 hours — NOT the "1-2 hours" previously claimed.
 
 Usage:
     # Quick test (1M tokens)
     python scripts/qlora_continual.py --tokens 1_000_000
 
-    # 100M tokens (est. 6-14 h on RTX 2070, unverified)
+    # 100M tokens (est. 6-14 h on a T4-class GPU, unverified; checkpoint before the
+    # 12 h Kaggle session cap)
     python scripts/qlora_continual.py --tokens 100_000_000
 
     # Custom model

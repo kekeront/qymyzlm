@@ -3,7 +3,7 @@
 v0: fine-tune of `intfloat/multilingual-e5-base` (278M, dim 768) per the **Less-is-More**
 protocol — *"Less is More: Adapting Text Embeddings for Low-Resource Languages with Small
 Scale Noisy Synthetic Data"*, [arXiv:2603.22290](https://arxiv.org/abs/2603.22290).
-Fits a single RTX 2070 (8 GB) / free Colab.
+Fits Kaggle free-plan GPUs (T4/P100, 16 GB, fp16).
 
 **Target**: MRR > 0.909 on KazQAD hard negatives (off-the-shelf mE5-large reference from the
 `Nurlykhan/kazembed-v5` card). Caveat: that number is highly protocol-sensitive — the

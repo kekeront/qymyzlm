@@ -27,7 +27,8 @@ def run_benchmarks(
         model_path: Path to HF-format model checkpoint.
         benchmark_names: List of benchmark names (keys in BENCHMARK_TASKS).
         output_dir: Directory to save results.json.
-        model_dtype: Inference dtype ("float16" default — RTX 2070/Turing has no bf16).
+        model_dtype: Inference dtype ("float16" default — Kaggle T4/P100 and other
+            pre-Ampere GPUs have no bf16).
 
     Returns:
         EvalRun with all benchmark results.

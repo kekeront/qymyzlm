@@ -98,17 +98,17 @@ class KazQADReranking(AbsTaskRetrieval):
                 if not positives:
                     continue  # mteb drops positive-less queries anyway; skip early
                 candidates = build_candidates(
-                    row["question"],
+                    row["query"],
                     positives,
                     index,
-                    query_id=row["id"],
+                    query_id=row["query_id"],
                     n_candidates=N_CANDIDATES,
                     seed=DEFAULT_SEED,
                 )
-                relevant_docs[row["id"]] = {doc_id: 1 for doc_id in positives}
-                top_ranked[row["id"]] = candidates
+                relevant_docs[row["query_id"]] = {doc_id: 1 for doc_id in positives}
+                top_ranked[row["query_id"]] = candidates
                 used_doc_ids.update(candidates)
-                query_rows.append({"id": row["id"], "text": row["question"]})
+                query_rows.append({"id": row["query_id"], "text": row["query"]})
             corpus = Dataset.from_list([pool[doc_id] for doc_id in sorted(used_doc_ids)])
             self.dataset.setdefault("default", {})[split] = RetrievalSplitData(
                 corpus=corpus,

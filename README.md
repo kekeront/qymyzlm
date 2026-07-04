@@ -64,7 +64,7 @@ Evaluated on 9,870 Kazakh-language questions from [MBZUAI/KazMMLU](https://huggi
 # 1. Benchmark any model
 python scripts/benchmark_baselines.py --models Qwen/Qwen3-0.6B-Base
 
-# 2. QLoRA continual PT on Kazakh data (fits on RTX 2070)
+# 2. QLoRA continual PT on Kazakh data (Kaggle free GPU: T4/P100, 16 GB)
 python scripts/qlora_continual.py --tokens 100_000_000
 
 # 3. Benchmark the fine-tuned model

@@ -30,6 +30,6 @@ benchmark:
 benchmark-quick:
 	$(PY) scripts/benchmark_baselines.py --quick
 
-# 4-bit QLoRA continual pretraining on streamed Kazakh data (RTX 2070 OK)
+# 4-bit QLoRA continual pretraining on streamed Kazakh data (Kaggle T4/P100 OK)
 qlora:
 	$(PY) scripts/qlora_continual.py --tokens $(TOKENS)
