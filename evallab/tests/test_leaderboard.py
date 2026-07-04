@@ -34,10 +34,21 @@ def test_render_covers_all_tracks_and_other():
 
 def test_render_marks_provenance_and_missing_metrics():
     content = render_leaderboard(load_records(FIXTURE_RESULTS))
-    hardneg_row = next(line for line in content.splitlines() if "KazQAD-HardNeg" in line)
+    # the detailed row (carries the source + full metrics), not the headline row
+    hardneg_row = next(
+        line for line in content.splitlines() if "KazQAD-HardNeg" in line and "0.9090" in line
+    )
     assert "reported" in hardneg_row
     assert "0.9090" in hardneg_row
     assert "—" in hardneg_row  # ndcg_at_10 not reported for the hardneg row
+
+
+def test_headline_precedes_full_records_and_groups_by_track():
+    content = render_leaderboard(load_records(FIXTURE_RESULTS))
+    assert content.index("### At a glance") < content.index("### Full records")
+    glance = content.split("### Full records")[0]
+    assert "nDCG@10" in glance  # headline uses one comparable metric per track
+    assert "0.4120" in glance  # measured retrieval score surfaces in the headline
 
 
 def _readme(tmp_path: Path, section: str = "stale") -> Path:

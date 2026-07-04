@@ -1,5 +1,24 @@
 _Auto-generated from `evallab/results/*.json` by `python -m kazeval.leaderboard` — do not edit by hand._
 
+### At a glance
+
+_One comparable metric per track, best first. `measured` = a kazeval runner produced it here; `reported` = external number, shown for context until re-measured in-lab. Full per-record metrics below._
+
+**Embedding / retrieval (KazQAD)**
+
+| Model | Task | nDCG@10 | Provenance | Date |
+|---|---|---|---|---|
+| intfloat/multilingual-e5-base | KazQADRetrieval | 0.4120 | measured | 2026-07-01 |
+| intfloat/multilingual-e5-large | KazQAD-HardNeg | — | reported | 2025-12-04 |
+
+**Generative (KazMMLU)**
+
+| Model | Task | Accuracy | Provenance | Date |
+|---|---|---|---|---|
+| Qwen/Qwen3-0.6B-Base | KazMMLU-kk | 0.3280 | measured | 2026-04-30 |
+
+### Full records
+
 ### Embedding / retrieval (KazQAD)
 
 | Model | Revision | Task | Split | ndcg_at_10 | mrr | hits_at_1 | hits_at_5 | mrr_at_10 | recall_at_100 | Provenance | Source | Date |

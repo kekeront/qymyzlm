@@ -44,6 +44,14 @@ MAIN_METRIC = {
     "Qorgau-kk": "safe_rate",
 }
 
+#: One comparable headline metric per track (title -> (metric key, display label)).
+#: Drives the scannable "At a glance" table; a record missing the metric shows "—".
+HEADLINE_METRIC: dict[str, tuple[str, str]] = {
+    "Embedding / retrieval (KazQAD)": ("ndcg_at_10", "nDCG@10"),
+    "Generative (KazMMLU)": ("acc", "Accuracy"),
+    "Safety (Qorgau)": ("safe_rate", "Safe rate"),
+}
+
 _MISSING = "—"
 
 
@@ -101,6 +109,60 @@ def _render_table(task_ids: tuple[str, ...], records: list[ResultRecord]) -> str
     return "\n".join(lines)
 
 
+def _render_headline_table(
+    metric_key: str, label: str, task_ids: tuple[str, ...], records: list[ResultRecord]
+) -> str:
+    """Compact one-metric-per-model table: grouped by task, best score first within each."""
+    header = ["Model", "Task", label, "Provenance", "Date"]
+    lines = [
+        "| " + " | ".join(header) + " |",
+        "|" + "|".join("---" for _ in header) + "|",
+    ]
+
+    def key(record: ResultRecord) -> tuple[int, int, float, str]:
+        task_pos = task_ids.index(record.task) if record.task in task_ids else len(task_ids)
+        value = record.metrics.get(metric_key)
+        # cluster by task, then metric-present above absent, then score desc
+        return (
+            task_pos,
+            0 if value is not None else 1,
+            -(value if value is not None else 0.0),
+            record.model,
+        )
+
+    for record in sorted(records, key=key):
+        value = record.metrics.get(metric_key)
+        cells = [
+            record.model,
+            record.task,
+            _format_metric(value) if value is not None else _MISSING,
+            record.provenance,
+            record.date,
+        ]
+        lines.append("| " + " | ".join(cells) + " |")
+    return "\n".join(lines)
+
+
+def render_headline(records: list[ResultRecord]) -> str:
+    """Scannable 'At a glance' block: one comparable metric per track, best first."""
+    blocks: list[str] = [
+        "### At a glance",
+        "_One comparable metric per track, best first. `measured` = a kazeval runner "
+        "produced it here; `reported` = external number, shown for context until "
+        "re-measured in-lab. Full per-record metrics below._",
+    ]
+    for title, task_ids in TRACKS:
+        if title not in HEADLINE_METRIC:
+            continue
+        track_records = [r for r in records if r.task in task_ids]
+        if not track_records:
+            continue
+        metric_key, label = HEADLINE_METRIC[title]
+        blocks.append(f"**{title}**")
+        blocks.append(_render_headline_table(metric_key, label, task_ids, track_records))
+    return "\n\n".join(blocks)
+
+
 def render_leaderboard(records: list[ResultRecord]) -> str:
     """Full leaderboard markdown (all tracks) from validated records."""
     remaining = list(records)
@@ -108,6 +170,10 @@ def render_leaderboard(records: list[ResultRecord]) -> str:
         "_Auto-generated from `evallab/results/*.json` by `python -m kazeval.leaderboard` "
         "— do not edit by hand._",
     ]
+    headline_tasks = {t for title, ids in TRACKS if title in HEADLINE_METRIC for t in ids}
+    if any(r.task in headline_tasks for r in records):
+        sections.append(render_headline(records))
+        sections.append("### Full records")
     tracks = [*TRACKS]
     leftover_tasks = tuple(
         sorted({r.task for r in records} - {t for _, ids in TRACKS for t in ids})
