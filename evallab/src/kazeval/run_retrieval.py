@@ -76,6 +76,14 @@ def load_model(name: str, revision: str | None) -> Any:
         return SentenceTransformer(name, revision=revision)
 
 
+def parse_device(spec: str) -> str | list[str]:
+    """'cuda:0' -> 'cuda:0'; 'cuda:0,cuda:1' -> ['cuda:0', 'cuda:1'] (multi-GPU pool)."""
+    devices = [d.strip() for d in spec.split(",") if d.strip()]
+    if not devices:
+        raise ValueError(f"empty --device spec: {spec!r}")
+    return devices if len(devices) > 1 else devices[0]
+
+
 def extract_metrics(split_scores: list[dict[str, Any]]) -> dict[str, float]:
     """Curated metrics dict from one split's mteb subset-score entries."""
     entry = split_scores[0]  # monolingual tasks have the single subset "default"
@@ -115,6 +123,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument(
+        "--device",
+        default=None,
+        help=(
+            "encode device(s); comma-separated list spreads encoding over multiple "
+            "GPUs via sentence-transformers' multi-process pool, e.g. 'cuda:0,cuda:1' "
+            "on Kaggle's T4 x2 (default: single-device auto)"
+        ),
+    )
+    parser.add_argument(
         "--overwrite-strategy",
         default="always",
         choices=("always", "only-missing"),
@@ -139,11 +156,15 @@ def main(argv: list[str] | None = None) -> int:
     model = load_model(args.model, args.model_revision)
     cache = ResultCache(cache_path=args.mteb_cache) if args.mteb_cache else ResultCache()
 
+    encode_kwargs: dict[str, Any] = {"batch_size": args.batch_size}
+    if args.device:
+        encode_kwargs["device"] = parse_device(args.device)
+
     results = mteb.evaluate(
         model,
         tasks,
         cache=cache,
-        encode_kwargs={"batch_size": args.batch_size},
+        encode_kwargs=encode_kwargs,
         overwrite_strategy=args.overwrite_strategy,
     )
 
