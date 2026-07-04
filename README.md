@@ -32,9 +32,9 @@ This is the point of the whole repo. Every published number comes from a `kazeva
 | Task | Metric | mE5-large (`measured`) | reference (`reported`) |
 |------|--------|:----:|--------|
 | KazQAD retrieval — full 825,309-passage corpus | NDCG@10 | **0.329** | 0.389 — KazQAD paper's tuned pipeline |
-| KazQAD reranking — pinned hard-neg protocol | MRR@10 | **0.654** | 0.909 — kazembed-v5 card — **does not reproduce** |
+| KazQAD reranking — pinned hard-neg protocol | MRR@10 | **0.654** | 0.909 — kazembed-v5 card — **unverifiable** (protocol unpublished) |
 
-The widely-cited "mE5-large MRR 0.909 on KazQAD" **does not reproduce** under a published protocol: its candidate pools were never released, and the same model scores **0.65**, not 0.91. Closing gaps like that — turning folklore into numbers you can check — is why this repo exists. (Full-corpus 0.329 sits honestly *below* the paper's tuned pipeline; off-the-shelf, untuned, reported as-is.)
+The widely-cited "mE5-large MRR 0.909 on KazQAD" is **unverifiable**: the candidate pools behind it were never published, and depending on protocol choices (candidate-pool size, negatives source) the same model can score anywhere from **~0.45 to ~0.92**. A number without a reproducible protocol isn't wrong — it's uncheckable, which for a benchmark is worse. Under our open, pinned protocol (`kazqad-hardneg-bm25-v1`: 100 BM25 candidates, fixed corpus revision), off-the-shelf mE5-large scores **MRR@10 0.654**. Turning uncheckable folklore into numbers you can re-run is why this repo exists. (Full-corpus NDCG@10 0.329 sits honestly *below* the paper's tuned pipeline; off-the-shelf, untuned, reported as-is.)
 
 ---
 
