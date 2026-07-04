@@ -1,6 +1,6 @@
 {
-  "id": "kekeront/kazeval-planka-me5-large-on-kazqad",
-  "title": "kazeval planka: mE5-large on KazQAD",
+  "id": "kekeront/kazeval-leaderboard-v0-kazqad",
+  "title": "kazeval leaderboard-v0: KazQAD embedding baselines",
   "code_file": "kazeval_kaggle.ipynb",
   "language": "python",
   "kernel_type": "notebook",
