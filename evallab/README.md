@@ -46,10 +46,12 @@ _Auto-generated from `evallab/results/*.json` by `python -m kazeval.leaderboard`
 
 ### Embedding / retrieval (KazQAD)
 
-| Model | Revision | Task | Split | ndcg_at_10 | mrr | hits_at_1 | hits_at_5 | Provenance | Source | Date |
-|---|---|---|---|---|---|---|---|---|---|---|
-| BM25 + fine-tuned reranker (KazQAD paper best pipeline) | — | KazQADRetrieval | test | 0.3890 | 0.3820 | — | — | reported | arXiv:2404.04487 (KazQAD, LREC-COLING 2024) | 2024-04-06 |
-| intfloat/multilingual-e5-large | — | KazQAD-HardNeg | test | — | 0.9090 | 0.8500 | 0.9900 | reported | https://huggingface.co/Nurlykhan/kazembed-v5 | 2025-12-04 |
+| Model | Revision | Task | Split | ndcg_at_10 | map_at_1000 | mrr | hits_at_1 | hits_at_5 | mrr_at_10 | ndcg_at_100 | recall_at_10 | recall_at_100 | Provenance | Source | Date |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| BM25 + fine-tuned reranker (KazQAD paper best pipeline) | — | KazQADRetrieval | test | 0.3890 | — | 0.3820 | — | — | — | — | — | — | reported | arXiv:2404.04487 (KazQAD, LREC-COLING 2024) | 2024-04-06 |
+| intfloat/multilingual-e5-large | ab10c1a7 | KazQADRetrieval | test | 0.3294 | 0.2772 | — | — | — | 0.3045 | 0.3831 | 0.4836 | 0.7202 | measured | kazeval.run_retrieval (mteb 2.16.3, encode dtype=float16) | 2026-07-04 |
+| intfloat/multilingual-e5-large | ab10c1a7 | KazQADReranking | test | 0.6943 | 0.6226 | — | — | — | 0.6545 | 0.7222 | 0.8917 | 1.0000 | measured | kazeval.run_retrieval (mteb 2.16.3, encode dtype=float16) | 2026-07-04 |
+| intfloat/multilingual-e5-large | — | KazQAD-HardNeg | test | — | — | 0.9090 | 0.8500 | 0.9900 | — | — | — | — | reported | https://huggingface.co/Nurlykhan/kazembed-v5 | 2025-12-04 |
 
 ### Generative (KazMMLU)
 

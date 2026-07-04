@@ -1,0 +1,18 @@
+{
+  "model": "intfloat/multilingual-e5-large",
+  "revision": "ab10c1a7f42e74530fe7ae5be82e6d4f11a719eb",
+  "task": "KazQADReranking",
+  "protocol": "Reranking per kazqad-hardneg-bm25-v1: 100 deterministic candidates per test question (gold positives + BM25 hard negatives from the judged-passage pool).",
+  "split": "test",
+  "metrics": {
+    "ndcg_at_10": 0.69434,
+    "ndcg_at_100": 0.72224,
+    "mrr_at_10": 0.6544574456705095,
+    "map_at_1000": 0.62262,
+    "recall_at_10": 0.8917,
+    "recall_at_100": 1.0
+  },
+  "provenance": "measured",
+  "source": "kazeval.run_retrieval (mteb 2.16.3, encode dtype=float16)",
+  "date": "2026-07-04"
+}
