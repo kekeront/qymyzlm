@@ -9,7 +9,13 @@ from qymyz_embed import prefixes
 def test_constants() -> None:
     assert prefixes.QUERY_PREFIX == "query: "
     assert prefixes.PASSAGE_PREFIX == "passage: "
-    assert prefixes.E5_PROMPTS == {"query": "query: ", "passage": "passage: "}
+    # "document" is mteb's only valid doc-side prompt key (and ST 5.6 encode_document's
+    # first candidate); "passage" stays for direct prompt_name="passage" callers.
+    assert prefixes.E5_PROMPTS == {
+        "query": "query: ",
+        "document": "passage: ",
+        "passage": "passage: ",
+    }
     assert prefixes.TRAIN_PROMPTS == {
         "anchor": "query: ",
         "positive": "passage: ",
@@ -61,11 +67,14 @@ def test_training_prompts_requires_contrastive_columns() -> None:
 
 
 def test_register_e5_prompts_merges() -> None:
-    model = SimpleNamespace(prompts={"query": "", "document": ""})
+    # ST 5.6 synthesizes EMPTY query/document defaults for stock mE5 — registration must
+    # OVERWRITE those (they are the bug), while unrelated keys are preserved.
+    model = SimpleNamespace(prompts={"query": "", "document": "", "custom": "keep me"})
     prefixes.register_e5_prompts(model)  # type: ignore[arg-type]
     assert model.prompts["query"] == "query: "
+    assert model.prompts["document"] == "passage: "
     assert model.prompts["passage"] == "passage: "
-    assert model.prompts["document"] == ""  # pre-existing entries preserved
+    assert model.prompts["custom"] == "keep me"  # unrelated entries preserved
 
 
 def test_register_e5_prompts_handles_missing_prompts_attr() -> None:

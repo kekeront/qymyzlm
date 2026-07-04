@@ -23,7 +23,19 @@ PASSAGE_PREFIX = "passage: "
 
 # Inference prompts: register on the model (see register_e5_prompts) so encode_query() /
 # encode(prompt_name="query") apply the real prefixes. Persists through model.save().
-E5_PROMPTS: dict[str, str] = {"query": QUERY_PREFIX, "passage": PASSAGE_PREFIX}
+# The document side is keyed THREE ways because consumers disagree on the key:
+#   - "document": mteb's ONLY valid doc-side PromptType (2.16.3) — without it, mteb's
+#     SentenceTransformerWrapper silently filters the prompt and encodes passages
+#     UNPREFIXED (the kazembed-v5 failure mode, self-inflicted); also ST 5.6
+#     encode_document()'s first candidate (checked before "passage", "corpus").
+#   - "passage": direct encode(prompt_name="passage") callers.
+# mteb logs a "prompts are not in the expected format" warning for the extra "passage"
+# key — expected noise, the valid "query"/"document" keys are kept and used.
+E5_PROMPTS: dict[str, str] = {
+    "query": QUERY_PREFIX,
+    "document": PASSAGE_PREFIX,
+    "passage": PASSAGE_PREFIX,
+}
 
 # Training column -> prompt mapping for SentenceTransformerTrainingArguments(prompts=...),
 # for the standard (anchor, positive[, negative]) contrastive layout.
@@ -82,5 +94,7 @@ def register_e5_prompts(model: SentenceTransformer) -> None:
 
     Without this, stock mE5 silently encodes with EMPTY prompts via encode_query() /
     prompt_name="query". The registered prompts persist through model.save().
+    E5_PROMPTS keys (query/document/passage) OVERWRITE pre-existing entries — stock mE5's
+    synthesized empty defaults are exactly what this replaces; other keys are preserved.
     """
     model.prompts = {**(getattr(model, "prompts", None) or {}), **E5_PROMPTS}
