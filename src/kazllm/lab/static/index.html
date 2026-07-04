@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QymyzLM Testing Lab</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>QymyzLM Testing Lab</h1>
+    <div id="model-status" class="model-status">loading model info…</div>
+  </header>
+
+  <div class="banner" role="note">
+    <strong>Honesty check:</strong> there is no trained QymyzLM checkpoint yet.
+    “Generative QymyzLM” below is the base <code>Qwen3-0.6B</code> fork-point — the same model
+    KazMMLU numbers are measured against. The <em>Engram graft</em> checkbox is an
+    <strong>untrained architecture smoke-test</strong> (random memory tables — the gate starts
+    near 0.5, not 0, and its output is renormalized to unit RMS before injection): it proves the
+    grafted forward pass runs and stays coherent, it is <strong>not</strong> a quality feature — expect
+    <strong>visible degradation</strong> vs base when it's on. The <strong>embedding model (mE5-large)</strong>
+    is real and meaningful, not a placeholder.
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="generate" role="tab" aria-selected="true">Generate (QymyzLM)</button>
+    <button class="tab-btn" data-tab="embed" role="tab" aria-selected="false">Embed (mE5-large)</button>
+  </nav>
+
+  <main>
+    <section id="tab-generate" class="tab-panel active">
+      <div class="hint">Model loads lazily on first request (CPU, may take ~1 min). Subsequent requests are fast.</div>
+
+      <div class="chips" id="prompt-chips">
+        <span class="chip" data-fill="prompt">Қазақстанның астанасы қай қала?</span>
+        <span class="chip" data-fill="prompt">Жасанды интеллект дегеніміз не, қысқаша түсіндір.</span>
+        <span class="chip" data-fill="prompt">Ыбырай Алтынсарин туралы қысқаша әңгімеле.</span>
+      </div>
+
+      <label for="prompt">Prompt</label>
+      <textarea id="prompt" rows="5" placeholder="Type a prompt in Kazakh or any language…"></textarea>
+
+      <div class="controls-grid">
+        <label>Max new tokens
+          <input type="number" id="max-tokens" value="128" min="1" max="2048" step="1" />
+        </label>
+        <label>Temperature
+          <input type="number" id="temperature" value="0.8" min="0" max="2" step="0.05" />
+        </label>
+        <label>Top-p
+          <input type="number" id="top-p" value="0.95" min="0" max="1" step="0.01" />
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="engram-toggle" />
+          Engram graft (untrained)
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="chat-toggle" checked />
+          Chat template
+        </label>
+      </div>
+
+      <div class="button-row">
+        <button id="generate-btn" class="primary">Send</button>
+        <button id="stop-btn" class="secondary" disabled>Stop</button>
+      </div>
+
+      <div class="output-box">
+        <div id="generate-output" class="output-text" aria-live="polite"></div>
+      </div>
+
+      <div id="generate-stats" class="stats"></div>
+    </section>
+
+    <section id="tab-embed" class="tab-panel">
+      <div class="hint">Model loads lazily on first request (CPU, may take ~1 min).</div>
+
+      <div class="chips" id="embed-chips">
+        <span class="chip" data-fill="embed-add">Астана — Қазақстанның астанасы.</span>
+        <span class="chip" data-fill="embed-add">Алматы — Қазақстанның ірі қаласы.</span>
+        <span class="chip" data-fill="embed-add">Бұл сөйлем мүлдем басқа тақырыпта.</span>
+      </div>
+
+      <div class="mode-toggle">
+        <label><input type="radio" name="embed-mode" value="query" checked /> query</label>
+        <label><input type="radio" name="embed-mode" value="passage" /> passage</label>
+      </div>
+
+      <div id="embed-rows" class="embed-rows"></div>
+      <button id="embed-add-row" class="secondary small">+ Add text</button>
+
+      <div class="button-row">
+        <button id="embed-btn" class="primary">Embed</button>
+      </div>
+
+      <div id="embed-meta" class="stats"></div>
+      <div id="embed-result" class="embed-result"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

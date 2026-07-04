@@ -26,6 +26,11 @@ dependencies = [
     # Evaluation
     "lm-eval>=0.4.3",
     "sacrebleu>=2.4.0",
+    # Testing lab (src/kazllm/lab)
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "sentence-transformers>=3.0.0",
+    "httpx>=0.27",
 ]
 
 [project.optional-dependencies]
