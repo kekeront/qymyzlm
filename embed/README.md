@@ -5,11 +5,12 @@ protocol — *"Less is More: Adapting Text Embeddings for Low-Resource Languages
 Scale Noisy Synthetic Data"*, [arXiv:2603.22290](https://arxiv.org/abs/2603.22290).
 Fits Kaggle free-plan GPUs (T4/P100, 16 GB, fp16).
 
-**Target**: MRR > 0.909 on KazQAD hard negatives (off-the-shelf mE5-large reference from the
-`Nurlykhan/kazembed-v5` card). Caveat: that number is highly protocol-sensitive — the
-99-negative TF-IDF pools were never published, so evallab fixes and publishes its own
-hard-negative recipe. **Every number comes from `evallab/` runners** (`kazeval` package);
-nothing in `embed/` self-reports metrics.
+**Target**: beat off-the-shelf `intfloat/multilingual-e5-large` on KazQAD under evallab's
+pinned protocol. The widely-cited "MRR 0.909" from the `Nurlykhan/kazembed-v5` card is
+[UNVERIFIED] and highly protocol-sensitive — its 99-negative TF-IDF pools were never
+published — so evallab re-measures mE5-large itself and publishes its own hard-negative
+recipe as the real baseline. **Every number comes from `evallab/` runners** (`kazeval`
+package); nothing in `embed/` self-reports metrics.
 
 ## Protocol (paper defaults, all pinned in code)
 

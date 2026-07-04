@@ -12,7 +12,7 @@ Monorepo of the Kazakh model campaign — three packages, one uv workspace:
 | Package | Dir | What it is |
 |---------|-----|------------|
 | `qymyzlm` (import `kazllm`) | `src/` | THE ENGINE: Kazakh SLM — Engram n-gram memory, QLoRA continual pretraining, benchmark study |
-| `qymyz-embed` | `embed/` | QymyzEmbed: best Kazakh text-embedding model (target: beat mE5-large MRR 0.909 on KazQAD) |
+| `qymyz-embed` | `embed/` | QymyzEmbed: best Kazakh text-embedding model (target: beat off-the-shelf mE5-large on KazQAD under evallab's pinned protocol) |
 | `kazeval` | `evallab/` | Benchmarking lab: KazQAD retrieval/reranking (kk-MTEB), KazMMLU, Qorgau guardrails — ALL published numbers come from runners here |
 
 Sibling project: [kazakh-nlp-atlas](https://github.com/kekeront/kazakh-nlp-atlas) — data-driven survey of Kazakh NLP + frontier knowledge base.

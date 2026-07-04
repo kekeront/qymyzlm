@@ -1,7 +1,7 @@
 # embed/ — QymyzEmbed: best Kazakh text-embedding model
 
 ## Goal
-Beat mE5-large MRR 0.909 on KazQAD hard-negatives; #1 on kk-MTEB. Two phases:
+Beat off-the-shelf mE5-large on KazQAD under evallab's pinned protocol (full-corpus + published hard-neg recipe); #1 on kk-MTEB. Two phases:
 1. **v0 (now)**: fine-tune mE5-base per Less-is-More protocol (arXiv 2603.22290) — ~10k clean pairs,
    0.5/0.5 weight averaging with the base model, fits Kaggle free GPUs (T4/P100, 16 GB). Open question we answer:
    Cyrillic script overlap (paper §6.2).
@@ -18,5 +18,5 @@ Beat mE5-large MRR 0.909 on KazQAD hard-negatives; #1 on kk-MTEB. Two phases:
 - e5 models require "query: " / "passage: " prefixes — keep them consistent in train AND eval.
 
 ## Done means
-- HF model card with reproducible numbers; MRR > 0.909 on KazQAD; kk-MTEB scores submitted.
+- HF model card with reproducible numbers; beats our measured mE5-large baseline on KazQAD; kk-MTEB scores submitted.
 - `ruff check` clean; `pytest embed/tests` green offline (fixtures, no downloads).

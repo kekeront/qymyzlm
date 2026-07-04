@@ -2,7 +2,7 @@
 
 ## Goal
 No model claim exists until a runner here reproduces it. Tracks:
-1. **Embedding/retrieval** — KazQAD (planka: mE5-large MRR 0.909 on hard negatives),
+1. **Embedding/retrieval** — KazQAD (planka: off-the-shelf mE5-large, re-measured by our runners; the cited card "MRR 0.909" is [UNVERIFIED], protocol-sensitive),
    kk-MTEB task classes (KazQADRetrieval, KazQADReranking) written here first, then PR'd
    upstream to embeddings-benchmark/mteb — the upstream merge is the deliverable.
 2. **Generative** — KazMMLU 3-shot (dev split holds only 3 exemplars/subject; runs previously
