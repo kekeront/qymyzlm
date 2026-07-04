@@ -66,9 +66,13 @@ def load_model(name: str, revision: str | None, dtype: str = "float16") -> Any:
 
     Casts to fp16 by default: encoding the 825k-passage KazQAD corpus in fp32 on a
     T4 is compute-bound at ~4.3s/64-batch (measured), which overruns Kaggle's 12h
-    session cap; fp16 is ~4x faster and shifts mE5-large retrieval scores by <1e-3
-    (standard eval precision). Under Linux fork, the fp16 weights are inherited by
-    the multi-GPU encode pool workers, so cuda:0,cuda:1 stays fp16.
+    session cap; fp16 is ~4x faster. mteb.evaluate reuses this exact instance (no
+    reload), and start_multi_process_pool pickles the already-halved model to the
+    spawned workers with dtype preserved, so cuda:0,cuda:1 stays fp16. Similarity
+    runs on fp32 (st upcasts embeddings before return), so fp16 is forward-pass
+    only; the mE5-large retrieval delta is expected to be <=1e-3 [UNVERIFIED for
+    KazQAD specifically] — fp16 is standard mteb eval precision (pinned in most of
+    mteb's own model implementations).
     """
     import mteb
 
@@ -89,18 +93,25 @@ def load_model(name: str, revision: str | None, dtype: str = "float16") -> Any:
 def _cast_fp16(model: Any) -> None:
     """Cast the underlying transformer to fp16 in-place (T4 has no bf16).
 
-    mteb wraps SentenceTransformer in a wrapper exposing ``.model``; try that first,
-    then a raw SentenceTransformer.
+    HARD-FAIL, never best-effort: this run's entire premise is fp16 (fp32 overruns
+    the 12h cap). A silent fallback to fp32 would produce a record indistinguishable
+    from a real fp16 run — the exact v4 failure mode. mteb wraps SentenceTransformer
+    in a wrapper exposing ``.model``; try that first, then a raw SentenceTransformer.
     """
-    for target in (getattr(model, "model", None), model):
-        if target is not None and hasattr(target, "half"):
-            try:
-                target.half()
-                logger.info("cast %s -> float16", type(target).__name__)
-                return
-            except Exception as exc:  # noqa: BLE001 - fp16 is best-effort, log and continue
-                logger.warning("fp16 cast failed on %s: %s", type(target).__name__, exc)
-    logger.warning("could not cast model to fp16; encoding stays fp32")
+    import torch
+
+    target = getattr(model, "model", None)
+    if target is None or not hasattr(target, "half"):
+        target = model
+    if not hasattr(target, "half"):
+        raise RuntimeError(
+            f"--dtype float16 requested but {type(model).__name__} has no castable module"
+        )
+    target.half()
+    got = next(target.parameters()).dtype
+    if got is not torch.float16:
+        raise RuntimeError(f"fp16 cast did not take: model dtype is {got}")
+    logger.info("cast %s -> %s", type(target).__name__, got)
 
 
 def parse_device(spec: str) -> str | list[str]:
@@ -153,8 +164,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--dtype",
         default="float16",
         choices=["float16", "float32"],
-        help="encode precision; float16 (default) is ~4x faster on T4 with a <1e-3 "
-        "score delta for mE5-large. Use float32 only to reproduce fp32 exactly.",
+        help="encode precision; float16 (default) is ~4x faster on T4, expected "
+        "score delta <=1e-3 [UNVERIFIED for KazQAD]. Use float32 to reproduce fp32.",
     )
     parser.add_argument(
         "--device",
@@ -216,7 +227,9 @@ def main(argv: list[str] | None = None) -> int:
                 split=split,
                 metrics=extract_metrics(split_scores),
                 provenance="measured",
-                source=f"kazeval.run_retrieval (mteb {mteb.__version__})",
+                source=(
+                    f"kazeval.run_retrieval (mteb {mteb.__version__}, encode dtype={args.dtype})"
+                ),
                 date=args.date,
             )
             path = save_record(record, args.output_dir)

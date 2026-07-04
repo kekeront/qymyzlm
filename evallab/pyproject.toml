@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Kazakh benchmarking lab: KazQAD retrieval/reranking (kk-MTEB), KazMMLU, Qorgau guardrails"
 requires-python = ">=3.11"
 dependencies = [
-    "mteb>=2.16.0",
+    "mteb>=2.16.0,<3",
     "datasets>=2.20.0",
     "lm-eval>=0.4.3",
     "huggingface-hub>=0.23.0",
