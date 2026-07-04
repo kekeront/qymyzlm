@@ -1,0 +1,14 @@
+{
+  "id": "kekeront/kazeval-planka-me5-large",
+  "title": "kazeval planka: mE5-large on KazQAD",
+  "code_file": "kazeval_kaggle.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": ["kekeront/qymyzlm-hf-token"],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

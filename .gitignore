@@ -49,3 +49,8 @@ session.txt
 
 # Claude Code memory (private)
 .claude/
+
+# secrets — never track
+.env
+*.env
+!.env.example
