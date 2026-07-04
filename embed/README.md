@@ -35,7 +35,10 @@ PY=.venv/bin/python  # run from the repo root; PYTHONPATH=embed/src until the ed
 $PY -m qymyz_embed.data.kazparc_pairs --output pairs.jsonl --directions kk-ru,ru-kk,kk-en,en-kk
 # smoke run: --limit 1000; offline/tests: --input embed/tests/fixtures/kazparc_sample.jsonl
 
-# 2. Less-is-More filtering (precomputed sims, or --model to compute with mE5)
+# 2. Less-is-More filtering — SYNTHETIC pairs only (needs q_en/p_en/q_kk/p_kk quads,
+#    which kazparc_pairs cannot produce: its anchor/positive are translations of each
+#    other). KazParC pairs from step 1 go straight to step 4; this gate waits for the
+#    future synthetic-generation stage. (precomputed sims, or --model to compute with mE5)
 $PY -m qymyz_embed.data.synth_filter --input scored.jsonl --output kept.jsonl
 
 # 3. (optional) hard negatives — python API: qymyz_embed.data.hard_negatives.mine(...)
