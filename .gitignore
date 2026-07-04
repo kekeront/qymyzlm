@@ -50,6 +50,10 @@ session.txt
 # Claude Code memory (private)
 .claude/
 
+# private ledgers / state — never track (CLAIM.md is the private claims convention)
+CLAIM.md
+SESSION.md
+
 # secrets — never track
 .env
 *.env
