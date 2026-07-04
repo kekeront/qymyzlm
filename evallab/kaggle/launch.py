@@ -27,6 +27,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -88,6 +89,17 @@ def main() -> int:
                 kaggle_env,
             )
             print(versioned.stdout.strip() or versioned.stderr.strip())
+
+    # A kernel pushed before the dataset finishes processing starts WITHOUT the
+    # attachment (observed: version 1 died on the missing hf_token.txt) — block
+    # until Kaggle reports the dataset ready.
+    for _ in range(36):
+        status = run(["kaggle", "datasets", "status", token_ds], kaggle_env)
+        if "ready" in status.stdout:
+            break
+        time.sleep(5)
+    else:
+        sys.exit(f"dataset {token_ds} never became ready; not pushing the kernel")
 
     pushed = run(["kaggle", "kernels", "push", "-p", str(HERE)], kaggle_env)
     print(pushed.stdout.strip() or pushed.stderr.strip())
