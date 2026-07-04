@@ -46,7 +46,7 @@ src/kazllm/
 └── utils/                      # io.py (atomic JSON, shard paths), logging.py (rank-aware), seed.py
 scripts/
 ├── benchmark_baselines.py      # KazMMLU 3-shot bench: accuracy + fertility + speed (PEFT-aware)
-└── qlora_continual.py          # 4-bit QLoRA continual PT on streamed Kazakh data (Kaggle T4/P100 OK)
+└── qlora_continual.py          # 4-bit QLoRA continual PT on streamed Kazakh data (Kaggle T4 OK)
 configs/
 ├── eval/default.yaml           # benchmark list + dtype defaults (mirrors eval/benchmarks.py)
 └── training/sft_lora.yaml      # planned SFT stage — no consumer script yet
@@ -170,7 +170,9 @@ RTX 2070 is ABANDONED for GPU runs (April-2026 baseline numbers measured on it s
 as historical records). All GPU work goes to Kaggle:
 - Quota: 30 GPU-hours/week, sessions up to ~12 h, internet ON (verify phone), gated HF
   datasets via `HF_TOKEN` in Kaggle Secrets.
-- GPUs: P100 16 GB (sm_60) or T4×2 (2×16 GB, sm_75). NEITHER has bf16 — the codebase's
+- GPU: T4×2 (2×16 GB, sm_75) — ALWAYS pin machine_shape NvidiaTeslaT4. P100 is dead on
+  2026 Kaggle images (sm_60; stock torch builds sm_70+ — measured 2026-07-04: instant
+  'no kernel image' crash). T4 has no bf16 — the codebase's
   fp16 auto-detect path (Turing-tested) carries over unchanged.
 - Launchers live in `evallab/kaggle/` — a notebook clones this repo from GitHub, so runs
   always need the latest `main` PUSHED first.
