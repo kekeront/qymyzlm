@@ -76,15 +76,28 @@ def load_model(name: str, revision: str | None, dtype: str = "float16") -> Any:
     """
     import mteb
 
-    try:
-        model = mteb.get_model(name, revision=revision)
-    except (KeyError, ValueError) as err:
+    if Path(name).is_dir():
+        # Local checkpoint: mteb.get_model builds a limited ModelMeta with
+        # loader=None and raises NotImplementedError (v4 souped-lane failure) —
+        # don't go through the registry at all. Message must contain the
+        # kernels' FALLBACK_MARK ("not in mteb's model registry").
         logger.warning(
-            "%r not in mteb's model registry (%s); loading as SentenceTransformer", name, err
+            "%r is a local directory, not in mteb's model registry; loading as SentenceTransformer",
+            name,
         )
         from sentence_transformers import SentenceTransformer
 
-        model = SentenceTransformer(name, revision=revision)
+        model = SentenceTransformer(name)
+    else:
+        try:
+            model = mteb.get_model(name, revision=revision)
+        except (KeyError, ValueError, NotImplementedError) as err:
+            logger.warning(
+                "%r not in mteb's model registry (%s); loading as SentenceTransformer", name, err
+            )
+            from sentence_transformers import SentenceTransformer
+
+            model = SentenceTransformer(name, revision=revision)
     if dtype == "float16":
         _cast_fp16(model)
     return model

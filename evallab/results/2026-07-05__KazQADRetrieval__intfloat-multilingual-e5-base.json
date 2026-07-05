@@ -1,0 +1,18 @@
+{
+  "model": "intfloat/multilingual-e5-base",
+  "revision": "d13f1b27baf31030b7fd040960d60d909913633f",
+  "task": "KazQADRetrieval",
+  "protocol": "Full-corpus retrieval: KazQAD test questions vs the 825,309-passage Kazakh Wikipedia corpus (issai/kazqad-retrieval, pinned revision); comparable to arXiv:2404.04487 baselines (best pipeline NDCG@10 0.389 / MRR 0.382).",
+  "split": "test",
+  "metrics": {
+    "ndcg_at_10": 0.27848,
+    "ndcg_at_100": 0.33005,
+    "mrr_at_10": 0.2567511746360891,
+    "map_at_1000": 0.23206,
+    "recall_at_10": 0.41757,
+    "recall_at_100": 0.64489
+  },
+  "provenance": "measured",
+  "source": "kazeval.run_retrieval (mteb 2.16.3, encode dtype=float16)",
+  "date": "2026-07-05"
+}
