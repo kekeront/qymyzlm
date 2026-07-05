@@ -1,5 +1,5 @@
 {
-  "id": "kekeront/kazeval-leaderboard-v0-kazqad",
+  "id": "kekeront/kazeval-leaderboard-v0-kazqad-embedding-baselines",
   "title": "kazeval leaderboard-v0: KazQAD embedding baselines",
   "code_file": "kazeval_kaggle.ipynb",
   "language": "python",
