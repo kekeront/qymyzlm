@@ -8,7 +8,8 @@
   "enable_gpu": true,
   "enable_internet": true,
   "dataset_sources": [
-    "kekeront/qymyzlm-hf-token"
+    "kekeront/qymyzlm-hf-token",
+    "kekeront/qymyzlm-wheels"
   ],
   "competition_sources": [],
   "kernel_sources": [],
