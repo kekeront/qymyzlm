@@ -15,6 +15,11 @@ dependencies = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+# Same guard as embed/: never let repo .gitignore patterns decide wheel
+# contents (the unanchored 'data/' pattern dropped a CODE subpackage there).
+ignore-vcs = true
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/kazeval"]
 
