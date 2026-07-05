@@ -15,5 +15,12 @@ dependencies = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+# Do NOT consult .gitignore for file selection: the repo-root ignore pattern
+# "data/" (large data dirs) would silently drop the src/qymyz_embed/data/
+# CODE subpackage from wheels (bit us on Kaggle 2026-07-05: pip-installed
+# package had no qymyz_embed.data while editable installs worked fine).
+ignore-vcs = true
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/qymyz_embed"]

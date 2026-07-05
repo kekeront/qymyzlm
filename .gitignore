@@ -10,8 +10,12 @@ build/
 .venv/
 venv/
 
-# Data (large files, never commit)
-data/
+# Data (large files, never commit). Anchored patterns only — a bare "data/"
+# also matches CODE subpackages like src/qymyz_embed/data/ and made hatchling
+# drop them from wheels (Kaggle failure 2026-07-05).
+/data/
+embed/data/
+evallab/data/
 outputs/
 checkpoints/
 evals/
