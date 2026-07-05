@@ -1,6 +1,6 @@
 {
   "id": "kekeront/qymyz-embed-lim-v0-train",
-  "title": "QymyzEmbed v0: Less-is-More train + soup + KazQAD eval",
+  "title": "Qymyz Embed LIM v0 Train",
   "code_file": "qymyz_embed_train.ipynb",
   "language": "python",
   "kernel_type": "notebook",
